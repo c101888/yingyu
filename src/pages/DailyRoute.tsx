@@ -374,7 +374,7 @@ export default function DailyRoute() {
           <div className="space-y-3 animate-fade-up">
             {editingNodes.map((node, i) => (
               <Card key={node.id}>
-                <CardContent className="p-4">
+                <CardContent className="p-4 sm:p-5">
                   <div className="flex items-start gap-3">
                     <div className="flex flex-col items-center gap-1 pt-2">
                       <button
@@ -459,7 +459,7 @@ export default function DailyRoute() {
         {/* 权益提示 */}
         {currentUser && tierInfo.tier === 'free' && (
           <Card className="mt-6 border-peach/30 bg-peach-soft/20">
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-3">
                 <Crown className="h-5 w-5 shrink-0 text-amber-600" />
                 <div className="flex-1 text-sm">
@@ -484,7 +484,7 @@ export default function DailyRoute() {
           onClick={() => setShowMetaEditor(false)}
         >
           <Card className="max-w-md w-full shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
-            <CardContent className="p-4 sm:p-6">
+            <CardContent className="p-4 sm:p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-lg font-bold">编辑路线信息</h3>
                 <button onClick={() => setShowMetaEditor(false)} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary">
@@ -540,7 +540,7 @@ export default function DailyRoute() {
           onClick={() => setShowCreator(false)}
         >
           <Card className="max-w-md w-full shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
-            <CardContent className="p-4 sm:p-6">
+            <CardContent className="p-4 sm:p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-lg font-bold">新建路线</h3>
                 <button onClick={() => setShowCreator(false)} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary">

@@ -314,7 +314,7 @@ export default function SceneResult() {
         {/* 学习引导 */}
         <div className="mt-6 animate-fade-up" style={{ animationDelay: '0.08s' }}>
           <Card className="border-primary/20 bg-sage-soft/20">
-            <CardContent className="flex items-start gap-3 p-4">
+            <CardContent className="flex items-start gap-3 p-4 sm:p-5">
               <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-peach-soft text-lg">
                 💡
               </span>
@@ -369,7 +369,7 @@ export default function SceneResult() {
             )
           }
         >
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {vocab.map((v, i) => {
               const listened = listenedWords.has(v.word);
               const isCurrent = seqPlaying === 'vocab' && currentSeqIdx === i;
@@ -501,7 +501,7 @@ export default function SceneResult() {
         >
           <div className="space-y-3">
             {dialogue.map((d) => (
-              <div key={d.round} className="space-y-1.5 rounded-2xl border border-border bg-card p-3 shadow-soft sm:p-4">
+              <div key={d.round} className="space-y-1.5 rounded-2xl border border-border bg-card p-3 shadow-soft sm:p-5">
                 <div className="flex items-start gap-2">
                   <span className="mt-0.5 shrink-0 rounded-full bg-peach-soft px-2 py-0.5 text-xs font-bold text-accent-foreground">
                     家长
@@ -551,7 +551,7 @@ export default function SceneResult() {
                   <span className="hidden sm:inline">重新生成</span>
                 </Button>
               </div>
-              <div className="grid grid-cols-3 gap-2 sm:gap-4">
+              <div className="grid grid-cols-3 gap-2 sm:gap-3">
                 {MASTERY_OPTIONS.map((opt) => {
                   const Icon = opt.icon;
                   const active = session.mastery === opt.value;
@@ -608,7 +608,7 @@ export default function SceneResult() {
               className="w-full max-w-md animate-fade-up border-border bg-card shadow-soft-lg"
               onClick={(e) => e.stopPropagation()}
             >
-              <CardContent className="p-5 max-h-[85vh] overflow-y-auto">
+              <CardContent className="p-4 sm:p-5 max-h-[85vh] overflow-y-auto">
                 <div className="mb-3 flex items-center gap-2">
                   <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary/10 text-primary">
                     {isPro ? <Wand2 className="h-4 w-4" /> : <Crown className="h-4 w-4 text-amber-500" />}

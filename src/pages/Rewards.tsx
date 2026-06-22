@@ -313,7 +313,7 @@ export default function Rewards() {
         <div className="grid grid-cols-3 gap-2 sm:gap-4 animate-fade-up" style={{ animationDelay: '0.06s' }}>
           {/* 总星数 */}
           <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-2 text-amber-700">
                 <Star className="h-5 w-5 fill-amber-400 text-amber-500" />
                 <span className="text-sm font-semibold">总星数</span>
@@ -328,7 +328,7 @@ export default function Rewards() {
 
           {/* 当前等级 */}
           <Card className="border-primary/20 bg-gradient-to-br from-sage-soft/40 to-peach-soft/30">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-2 text-primary">
                 <Award className="h-5 w-5" />
                 <span className="text-sm font-semibold">当前等级</span>
@@ -343,7 +343,7 @@ export default function Rewards() {
 
           {/* 距离下一级 */}
           <Card className={cn(nextLevel ? 'border-purple-200 bg-purple-50/50' : 'border-border bg-card')}>
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-2 text-purple-700">
                 <Sparkles className="h-5 w-5" />
                 <span className="text-sm font-semibold">{nextLevel ? '距离下一级' : '已满级'}</span>
@@ -369,7 +369,7 @@ export default function Rewards() {
 
         {/* 等级进度条 */}
         <Card className="mt-4 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />

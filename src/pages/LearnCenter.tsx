@@ -88,7 +88,7 @@ export default function LearnCenter() {
 
         {/* 建设中提示 */}
         <Card className="mb-6 border-amber-200 bg-amber-50/50 animate-fade-up" style={{ animationDelay: '0.06s' }}>
-          <CardContent className="flex items-center gap-3 p-4">
+          <CardContent className="flex items-center gap-3 p-4 sm:p-5">
             <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-amber-600">
               <Construction className="h-5 w-5" />
             </span>
@@ -128,7 +128,7 @@ export default function LearnCenter() {
 
         {/* 学习路径建议 */}
         <Card className="mt-6 border-primary/20 bg-sage-soft/20 animate-fade-up" style={{ animationDelay: '0.4s' }}>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-4 sm:p-5">
             <h3 className="mb-3 font-display text-lg font-bold">推荐学习路径</h3>
             <div className="space-y-3">
               {[

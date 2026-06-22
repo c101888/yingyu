@@ -138,7 +138,7 @@ export default function Done() {
         {/* 积分获得提示（仅登录用户、本次新获得时显示） */}
         {earnedStars !== null && currentUser && (
           <Card className="mt-4 overflow-hidden border-amber-300 bg-gradient-to-br from-amber-50 to-yellow-50 animate-pop-in">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex items-center gap-4">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl bg-amber-100 text-3xl">
                   ⭐
@@ -213,7 +213,7 @@ export default function Done() {
         {/* 复习与迁移提示 */}
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 animate-fade-up" style={{ animationDelay: '0.18s' }}>
           <Card className="border-peach/30 bg-peach-soft/30">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="mb-2 flex items-center gap-2">
                 <CalendarClock className="h-5 w-5 text-accent-foreground" />
                 <h3 className="font-display font-bold">明天复习一次</h3>
@@ -224,7 +224,7 @@ export default function Done() {
             </CardContent>
           </Card>
           <Card className="border-sage/30 bg-sage-soft/30">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="mb-2 flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
                 <h3 className="font-display font-bold">七天后用到生活里</h3>

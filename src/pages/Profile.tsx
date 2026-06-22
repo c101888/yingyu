@@ -109,7 +109,7 @@ export default function Profile() {
         {/* 用户信息卡 */}
         <Card className="overflow-hidden border-primary/20 shadow-soft-lg animate-fade-up">
           <CardContent className="p-4 sm:p-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-5">
               <div className="flex items-center gap-3 sm:gap-4">
                 <span className="grid h-14 w-14 shrink-0 place-items-center rounded-3xl bg-gradient-to-br from-sage-soft to-peach-soft text-3xl sm:h-20 sm:w-20 sm:text-5xl">
                   {currentUser.avatar}
@@ -251,7 +251,7 @@ export default function Profile() {
         {/* 当前方案额度信息 */}
         {tierInfo.tier !== 'free' && (
           <Card className="mt-4 animate-fade-up" style={{ animationDelay: '0.08s' }}>
-            <CardContent className="p-4">
+            <CardContent className="p-4 sm:p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <span className="text-xl">{getTierBadge(tierInfo.tier)}</span>
@@ -275,10 +275,10 @@ export default function Profile() {
         )}
 
         {/* 积分 + 等级概览：移动端 3 列横排，避免第三个换行 */}
-        <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-5 animate-fade-up" style={{ animationDelay: '0.08s' }}>
+        <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-4 animate-fade-up" style={{ animationDelay: '0.08s' }}>
           {/* 总星数 */}
           <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
-            <CardContent className="p-2.5 sm:p-6">
+            <CardContent className="p-2.5 sm:p-5">
               <div className="flex items-center gap-1 text-amber-700 sm:gap-2">
                 <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500 sm:h-5 sm:w-5" />
                 <span className="text-[10px] font-semibold sm:text-sm">总星数</span>
@@ -295,7 +295,7 @@ export default function Profile() {
 
           {/* 当前等级 */}
           <Card className="border-primary/20 bg-gradient-to-br from-sage-soft/40 to-peach-soft/30">
-            <CardContent className="p-2.5 sm:p-6">
+            <CardContent className="p-2.5 sm:p-5">
               <div className="flex items-center gap-1 text-primary sm:gap-2">
                 <Award className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
                 <span className="text-[10px] font-semibold sm:text-sm">当前等级</span>
@@ -310,7 +310,7 @@ export default function Profile() {
 
           {/* 距离下一级 */}
           <Card className={cn(nextLevel ? 'border-purple-200 bg-purple-50/50' : 'border-border bg-card')}>
-            <CardContent className="p-2.5 sm:p-6">
+            <CardContent className="p-2.5 sm:p-5">
               <div className="flex items-center gap-1 text-purple-700 sm:gap-2">
                 <TrendingUp className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
                 <span className="text-[10px] font-semibold sm:text-sm">{nextLevel ? '下一级' : '已满级'}</span>
@@ -336,7 +336,7 @@ export default function Profile() {
 
         {/* 等级进度条 */}
         <Card className="mt-4 animate-fade-up" style={{ animationDelay: '0.12s' }}>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-primary" />
@@ -367,7 +367,7 @@ export default function Profile() {
 
         {/* 等级勋章墙 */}
         <Card className="mt-4 animate-fade-up" style={{ animationDelay: '0.16s' }}>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <div className="mb-4 flex items-center gap-2">
               <Award className="h-4 w-4 text-primary" />
               <h3 className="font-display font-bold">勋章墙</h3>
@@ -383,7 +383,7 @@ export default function Profile() {
                   <div
                     key={lv.level}
                     className={cn(
-                      'flex flex-col items-center gap-1 rounded-2xl border p-2 sm:p-2.5 text-center transition-all',
+                      'flex flex-col items-center gap-1 rounded-2xl border p-2 text-center transition-all',
                       isCurrent && 'border-primary bg-primary/5 shadow-soft',
                       unlocked && !isCurrent && 'border-sage/30 bg-sage-soft/20',
                       !unlocked && 'border-border bg-muted/30 opacity-40',

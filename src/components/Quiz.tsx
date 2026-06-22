@@ -262,7 +262,10 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
         {/* 选项区（仅选择题类型显示，listen_pick 已在组件内部显示选项） */}
         {(current.type === 'listen_word' || current.type === 'listen_sentence'
           || current.type === 'zh_to_en_word' || current.type === 'zh_to_en_sentence') && (
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+          <div className={cn(
+            'grid grid-cols-2 gap-2 sm:gap-4',
+            current.options.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-4',
+          )}>
             {current.options.map((opt) => {
               const selected = currentAnswer === opt.id;
               const correct = opt.isCorrect;
@@ -375,7 +378,10 @@ function FillBlankQuestion({
           <p className="mt-1 text-xs text-primary">{question.blankHint}</p>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+      <div className={cn(
+        'grid grid-cols-2 gap-2 sm:gap-4',
+        question.options.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-4',
+      )}>
         {question.options.map((opt) => {
           const isSelected = selected === opt.id;
           const correct = opt.isCorrect;
@@ -525,7 +531,10 @@ function ListenPickQuestion({
       {hasPlayed && (
         <p className="text-xs text-muted-foreground">中文释义：{question.displayZh}</p>
       )}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+      <div className={cn(
+        'grid grid-cols-2 gap-2 sm:gap-4',
+        question.options.length === 3 ? 'sm:grid-cols-3' : 'sm:grid-cols-4',
+      )}>
         {question.options.map((opt) => {
           const isSelected = selected === opt.id;
           const correct = opt.isCorrect;

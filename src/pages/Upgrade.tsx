@@ -122,7 +122,7 @@ export default function Upgrade() {
         </div>
 
         {/* 三档定价卡 */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-5 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+        <div className="grid grid-cols-3 gap-2 sm:gap-5 animate-fade-up" style={{ animationDelay: '0.1s' }}>
           {TIER_ORDER.map((tierKey) => {
             const cfg = TIER_CONFIGS[tierKey];
             const isCurrent = currentTier === tierKey;
@@ -153,7 +153,7 @@ export default function Upgrade() {
                     </Badge>
                   </div>
                 )}
-                <CardContent className="flex flex-1 flex-col p-2.5 sm:p-5 md:p-6">
+                <CardContent className="flex flex-1 flex-col p-2.5 sm:p-6">
                   {/* 头部 */}
                   <div className="mb-2 sm:mb-4">
                     <div className="flex items-center gap-1 sm:gap-2">
@@ -241,7 +241,7 @@ export default function Upgrade() {
 
         {/* 对比说明 */}
         <Card className="mt-8 animate-fade-up" style={{ animationDelay: '0.16s' }}>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-4 sm:p-5">
             <h3 className="mb-4 font-display text-lg font-bold">方案对比</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -280,7 +280,7 @@ export default function Upgrade() {
         {/* FAQ */}
         <div className="mt-6 grid gap-4 sm:grid-cols-2 animate-fade-up" style={{ animationDelay: '0.2s' }}>
           <Card className="border-border/60">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <h4 className="mb-2 font-semibold">次数用完了怎么办？</h4>
               <p className="text-sm text-muted-foreground">
                 免费用户终身 6 次，用完需升级。Plus/Pro 用户每月 1 号重置次数，未用完的次数不累积。
@@ -288,7 +288,7 @@ export default function Upgrade() {
             </CardContent>
           </Card>
           <Card className="border-border/60">
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <h4 className="mb-2 font-semibold">可以随时取消吗？</h4>
               <p className="text-sm text-muted-foreground">
                 可以。到期后自动降级为免费版，已生成的学习内容不受影响，星星和等级保留。

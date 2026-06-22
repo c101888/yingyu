@@ -165,9 +165,9 @@ export default function Practice() {
                 {vocab.map((v) => (
                   <div
                     key={v.word}
-                    className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5"
+                    className="flex items-center gap-1.5 rounded-full border border-border bg-card pl-2 pr-3 py-1.5"
                   >
-                    <SpeakButton text={v.word} variant="ghost" size="icon" className="h-9 w-9 p-0" />
+                    <SpeakButton text={v.word} variant="ghost" size="icon" className="h-7 w-7 p-0 [&_svg]:size-4" />
                     <span className="font-display text-sm font-bold">{v.word}</span>
                     <span className="text-xs text-muted-foreground">{v.meaningZh}</span>
                   </div>
