@@ -1,0 +1,35 @@
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Home from "@/pages/Home";
+import DailyRoute from "@/pages/DailyRoute";
+import SceneResult from "@/pages/SceneResult";
+import Learn from "@/pages/Learn";
+import Practice from "@/pages/Practice";
+import Done from "@/pages/Done";
+import HistoryPage from "@/pages/HistoryPage";
+import Profile from "@/pages/Profile";
+import Upgrade from "@/pages/Upgrade";
+import Rewards from "@/pages/Rewards";
+import LearnCenter from "@/pages/LearnCenter";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+
+export default function App() {
+  return (
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/daily-route" element={<DailyRoute />} />
+          <Route path="/scene-result" element={<SceneResult />} />
+          <Route path="/learn" element={<Learn />} />
+          <Route path="/practice" element={<Practice />} />
+          <Route path="/done" element={<Done />} />
+          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/upgrade" element={<Upgrade />} />
+          <Route path="/rewards" element={<Rewards />} />
+          <Route path="/learn-center" element={<LearnCenter />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
+  );
+}
