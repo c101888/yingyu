@@ -140,7 +140,7 @@ export function PageShell({ children, showHome = true, showHistory = true, showP
               ) : (
                 <Link
                   to="/profile"
-                  className="grid h-10 w-10 place-items-center rounded-2xl border border-border bg-card text-foreground transition-colors hover:bg-secondary"
+                  className="grid h-11 w-11 place-items-center rounded-2xl border border-border bg-card text-foreground transition-colors hover:bg-secondary"
                   title="用户中心"
                 >
                   <User className="h-5 w-5" />

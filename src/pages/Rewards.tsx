@@ -255,7 +255,7 @@ export default function Rewards() {
               <Badge variant="peach" className="mt-5 gap-1">
                 <Crown className="h-3.5 w-3.5" /> Pro 专属功能
               </Badge>
-              <h1 className="mt-4 font-display text-3xl font-bold sm:text-4xl">积分兑换奖励</h1>
+              <h1 className="mt-4 font-display text-2xl font-bold sm:text-4xl">积分兑换奖励</h1>
               <p className="mx-auto mt-3 max-w-md text-muted-foreground">
                 用学习攒下的星星兑换真实奖励，让孩子更有动力坚持每日英语练习。这是 Pro 会员专属功能。
               </p>
@@ -299,7 +299,7 @@ export default function Rewards() {
           <Badge variant="peach" className="mb-3 gap-1.5">
             <Crown className="h-3.5 w-3.5" /> Pro 专属
           </Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">积分兑换奖励</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">积分兑换奖励</h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
             用学习攒下的星星兑换奖励，让坚持变成惊喜。
           </p>
@@ -314,7 +314,7 @@ export default function Rewards() {
                 <Star className="h-5 w-5 fill-amber-400 text-amber-500" />
                 <span className="text-sm font-semibold">总星数</span>
               </div>
-              <p className="mt-2 font-display text-4xl font-bold text-amber-700">
+              <p className="mt-2 font-display text-3xl font-bold text-amber-700 sm:text-4xl">
                 {totalStars}
                 <span className="ml-1 text-lg text-amber-500">⭐</span>
               </p>
@@ -329,7 +329,7 @@ export default function Rewards() {
                 <Award className="h-5 w-5" />
                 <span className="text-sm font-semibold">当前等级</span>
               </div>
-              <p className="mt-2 font-display text-3xl font-bold">
+              <p className="mt-2 font-display text-2xl font-bold sm:text-3xl">
                 <span className="mr-1">{currentLevel.badge}</span>
                 Lv.{currentLevel.level}
               </p>
@@ -346,7 +346,7 @@ export default function Rewards() {
               </div>
               {nextLevel ? (
                 <>
-                  <p className="mt-2 font-display text-3xl font-bold text-purple-700">
+                  <p className="mt-2 font-display text-2xl font-bold sm:text-3xl text-purple-700">
                     {remainStars}
                     <span className="ml-1 text-base text-purple-500">⭐</span>
                   </p>
@@ -430,7 +430,7 @@ export default function Rewards() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {rewards.map((reward) => {
                 const canAfford = totalStars >= reward.starCost;
                 const need = reward.starCost - totalStars;
@@ -441,7 +441,7 @@ export default function Rewards() {
                     <CardContent className="flex flex-1 flex-col p-4 sm:p-5">
                       {/* 头部：图标 + 预设标签 + 管理按钮 */}
                       <div className="mb-3 flex items-start justify-between">
-                        <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-sage-soft to-peach-soft text-3xl">
+                        <span className="grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-2xl bg-gradient-to-br from-sage-soft to-peach-soft text-2xl sm:text-3xl">
                           {reward.icon || '🎁'}
                         </span>
                         <div className="flex items-center gap-1.5">
@@ -684,7 +684,7 @@ export default function Rewards() {
                 {redemptions.map((r) => (
                   <div
                     key={r.id}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-secondary/30"
+                    className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-border bg-card p-2.5 sm:p-3 transition-colors hover:bg-secondary/30"
                   >
                     <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-xl">
                       ⭐

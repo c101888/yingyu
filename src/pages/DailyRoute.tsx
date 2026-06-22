@@ -197,7 +197,7 @@ export default function DailyRoute() {
             <RouteIcon className="h-3.5 w-3.5" />
             每日路线
           </Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">把英语嵌入孩子的一天</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">把英语嵌入孩子的一天</h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
             每个生活节点都是一个英语表达机会。围绕孩子的一天安排学习场景，让英语自然发生在生活里。
           </p>
@@ -324,7 +324,7 @@ export default function DailyRoute() {
         {!editMode ? (
           <div className="relative animate-fade-up" style={{ animationDelay: '0.12s' }}>
             {/* 竖线 */}
-            <div className="absolute left-[27px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-peach via-sage to-primary/40 sm:left-[31px]" />
+            <div className="absolute left-[23px] top-4 bottom-4 w-0.5 bg-gradient-to-b from-peach via-sage to-primary/40 sm:left-[31px]" />
             <div className="space-y-4">
               {activeRoute.nodes.map((node, i) => (
                 <div
@@ -333,7 +333,7 @@ export default function DailyRoute() {
                   style={{ animationDelay: `${0.14 + i * 0.05}s` }}
                 >
                   <div className="relative z-10 shrink-0">
-                    <div className="grid h-14 w-14 place-items-center rounded-2xl border-2 border-border bg-card text-2xl shadow-soft sm:h-16 sm:w-16">
+                    <div className="grid h-12 w-12 place-items-center rounded-2xl border-2 border-border bg-card text-xl sm:text-2xl shadow-soft sm:h-16 sm:w-16">
                       {node.emoji}
                     </div>
                   </div>
@@ -450,7 +450,7 @@ export default function DailyRoute() {
         )}
 
         {/* 底部操作 */}
-        <div className="mt-8 flex justify-center gap-3 animate-fade-up" style={{ animationDelay: '0.4s' }}>
+        <div className="mt-6 sm:mt-8 flex justify-center gap-3 animate-fade-up" style={{ animationDelay: '0.4s' }}>
           <Button variant="outline" onClick={() => navigate('/')}>
             返回首页
           </Button>
@@ -480,10 +480,10 @@ export default function DailyRoute() {
       {/* 路线信息编辑弹窗 */}
       {showMetaEditor && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm p-4 sm:items-center"
           onClick={() => setShowMetaEditor(false)}
         >
-          <Card className="max-w-md w-full mx-4 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
+          <Card className="max-w-md w-full shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-lg font-bold">编辑路线信息</h3>
@@ -536,10 +536,10 @@ export default function DailyRoute() {
       {/* 新建路线弹窗 */}
       {showCreator && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm p-4 sm:items-center"
           onClick={() => setShowCreator(false)}
         >
-          <Card className="max-w-md w-full mx-4 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
+          <Card className="max-w-md w-full shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-lg font-bold">新建路线</h3>

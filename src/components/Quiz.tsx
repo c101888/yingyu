@@ -141,7 +141,7 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
 
   return (
     <Card className="border-primary/20">
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         {/* 题目进度条 */}
         <div className="mb-4">
           <div className="mb-2 flex items-center justify-between text-xs font-semibold text-muted-foreground">

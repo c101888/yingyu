@@ -69,7 +69,7 @@ export default function Upgrade() {
             <Sparkles className="h-3.5 w-3.5" />
             选择适合的方案
           </Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">升级解锁更多可能</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">升级解锁更多可能</h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
             从免费开始，随时升级。Plus 适合日常学习，Pro 适合深度练习。
           </p>
@@ -152,7 +152,7 @@ export default function Upgrade() {
                     </Badge>
                   </div>
                 )}
-                <CardContent className="flex flex-1 flex-col p-6">
+                <CardContent className="flex flex-1 flex-col p-5 sm:p-6">
                   {/* 头部 */}
                   <div className="mb-4">
                     <div className="flex items-center gap-2">
@@ -165,11 +165,11 @@ export default function Upgrade() {
                   {/* 价格 */}
                   <div className="mb-5">
                     {price === 0 ? (
-                      <p className="font-display text-4xl font-bold text-gray-700">免费</p>
+                      <p className="font-display text-3xl font-bold sm:text-4xl text-gray-700">免费</p>
                     ) : (
                       <>
                         <div className="flex items-baseline gap-1">
-                          <span className="font-display text-4xl font-bold">{formatPrice(price)}</span>
+                          <span className="font-display text-3xl font-bold sm:text-4xl">{formatPrice(price)}</span>
                           <span className="text-sm text-muted-foreground">/{billing === 'yearly' ? '年' : '月'}</span>
                         </div>
                         {billing === 'yearly' && (
@@ -239,7 +239,7 @@ export default function Upgrade() {
 
         {/* 对比说明 */}
         <Card className="mt-8 animate-fade-up" style={{ animationDelay: '0.16s' }}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <h3 className="mb-4 font-display text-lg font-bold">方案对比</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">

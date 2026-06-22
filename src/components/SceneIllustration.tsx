@@ -50,7 +50,7 @@ function buildImageUrl(sceneNameEn: string, sceneNameZh: string): string {
 const sizeMap = {
   sm: 'h-32',
   md: 'h-48',
-  lg: 'h-64',
+  lg: 'h-48 sm:h-64',
 };
 
 export function SceneIllustration({
@@ -124,7 +124,7 @@ export function SceneIllustration({
           !blobUrl && !errored && 'animate-pulse',
         )}
       >
-        <span className="text-5xl">{fallbackEmoji}</span>
+        <span className="text-4xl sm:text-5xl">{fallbackEmoji}</span>
       </div>
     </div>
   );

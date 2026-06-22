@@ -292,7 +292,7 @@ export default function SceneResult() {
             <Sparkles className="h-3.5 w-3.5" />
             场景已就绪
           </Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">{content.sceneNameZh}</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">{content.sceneNameZh}</h1>
           <p className="mt-1 text-lg font-medium text-primary/80">{content.sceneNameEn}</p>
         </div>
 
@@ -522,9 +522,9 @@ export default function SceneResult() {
         </Section>
 
         {/* 掌握判断 */}
-        <div className="mt-10 animate-fade-up" style={{ animationDelay: '0.22s' }}>
+        <div className="mt-6 sm:mt-10 animate-fade-up" style={{ animationDelay: '0.22s' }}>
           <Card className="border-primary/20 bg-card/80 shadow-soft-lg">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="font-display text-xl font-bold">孩子对这些内容熟悉吗？</h2>
@@ -754,7 +754,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-8 animate-fade-up" style={{ animationDelay: `${delay}s` }}>
+    <section className="mt-6 sm:mt-8 animate-fade-up" style={{ animationDelay: `${delay}s` }}>
       <div className="mb-3 flex items-center gap-2">
         <span className="text-xl">{icon}</span>
         <h2 className="font-display text-xl font-bold">{title}</h2>

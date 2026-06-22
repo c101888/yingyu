@@ -106,16 +106,16 @@ export default function Done() {
       <div className="mx-auto max-w-2xl">
         {/* 完成庆祝 */}
         <div className="text-center animate-pop-in">
-          <div className="relative mx-auto mb-5 h-28 w-28">
+          <div className="relative mx-auto mb-5 h-20 w-20 sm:h-28 sm:w-28">
             <div className="absolute inset-0 animate-pulse-ring rounded-full bg-primary/20" />
             <div className="absolute inset-2 animate-bounce-soft rounded-full bg-gradient-to-br from-sage-soft to-peach-soft" />
-            <div className="absolute inset-0 grid place-items-center text-6xl">🎉</div>
+            <div className="absolute inset-0 grid place-items-center text-4xl sm:text-6xl">🎉</div>
           </div>
           <Badge variant="sage" className="mb-3 gap-1.5">
             <Sparkles className="h-3.5 w-3.5" />
             今日完成
           </Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">今天的学习完成啦！</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">今天的学习完成啦！</h1>
           <p className="mx-auto mt-3 max-w-md text-muted-foreground text-balance">
             孩子已经学过、练过「{content.sceneNameZh}」，接下来可以在真实生活里用起来。
           </p>
@@ -127,10 +127,10 @@ export default function Done() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">今日场景</p>
-                <h2 className="font-display text-2xl font-bold">{content.sceneNameZh}</h2>
+                <h2 className="font-display text-xl font-bold sm:text-2xl">{content.sceneNameZh}</h2>
                 <p className="font-medium text-primary/80">{content.sceneNameEn}</p>
               </div>
-              <span className="text-5xl">{getSceneEmoji(content.sceneNameEn, content.sceneNameZh)}</span>
+              <span className="text-4xl sm:text-5xl">{getSceneEmoji(content.sceneNameEn, content.sceneNameZh)}</span>
             </div>
           </CardContent>
         </Card>
@@ -188,7 +188,7 @@ export default function Done() {
         )}
 
         {/* 完成状态 */}
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3 animate-fade-up" style={{ animationDelay: '0.14s' }}>
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:gap-3 animate-fade-up" style={{ animationDelay: '0.14s' }}>
           <StatusCard
             icon={BookOpen}
             title="已学习"
@@ -262,11 +262,11 @@ export default function Done() {
 
         {/* 操作按钮 */}
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row animate-fade-up" style={{ animationDelay: '0.26s' }}>
-          <Button variant="outline" size="lg" onClick={handleHome} className="min-w-[160px]">
+          <Button variant="outline" size="lg" onClick={handleHome} className="w-full sm:w-auto sm:min-w-[160px]">
             <Home className="h-4 w-4" />
             返回首页
           </Button>
-          <Button size="lg" onClick={handlePracticeAgain} className="min-w-[180px]">
+          <Button size="lg" onClick={handlePracticeAgain} className="w-full sm:w-auto sm:min-w-[180px]">
             <RotateCcw className="h-4 w-4" />
             再练一次
           </Button>

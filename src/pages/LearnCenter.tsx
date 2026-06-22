@@ -80,7 +80,7 @@ export default function LearnCenter() {
             <Sparkles className="h-3.5 w-3.5" />
             专业学习入口
           </Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">学习中心</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">学习中心</h1>
           <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
             系统化学习单词、句子、口语、写作，配合 AI 评分和阶段测验，全面提升英语能力。
           </p>
@@ -102,7 +102,7 @@ export default function LearnCenter() {
         </Card>
 
         {/* 模块网格 */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {MODULES.map((m, i) => {
             const Icon = m.icon;
             return (
@@ -128,7 +128,7 @@ export default function LearnCenter() {
 
         {/* 学习路径建议 */}
         <Card className="mt-6 border-primary/20 bg-sage-soft/20 animate-fade-up" style={{ animationDelay: '0.4s' }}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <h3 className="mb-3 font-display text-lg font-bold">推荐学习路径</h3>
             <div className="space-y-3">
               {[

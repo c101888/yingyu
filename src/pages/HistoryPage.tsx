@@ -127,7 +127,7 @@ export default function HistoryPage() {
                 <HistoryIcon className="h-6 w-6" />
               </span>
               <div>
-                <h1 className="font-display text-3xl font-bold">学习历史</h1>
+                <h1 className="font-display text-2xl font-bold sm:text-3xl">学习历史</h1>
                 <p className="text-sm text-muted-foreground">
                   共 {entries.length} 条记录 · 每页 {PAGE_SIZE} 条
                 </p>
@@ -186,7 +186,7 @@ export default function HistoryPage() {
                 return (
                   <div
                     key={entry.id}
-                    className="group flex items-center gap-4 rounded-2xl border border-border bg-card p-4 shadow-soft transition-all hover:border-primary/30 hover:shadow-soft-lg animate-fade-up"
+                    className="group flex items-center gap-3 sm:gap-4 rounded-2xl border border-border bg-card p-3 sm:p-4 shadow-soft transition-all hover:border-primary/30 hover:shadow-soft-lg animate-fade-up"
                     style={{ animationDelay: `${Math.min(idx * 0.03, 0.3)}s` }}
                   >
                     <button
@@ -195,7 +195,7 @@ export default function HistoryPage() {
                     >
                       <span
                         className={cn(
-                          'grid h-12 w-12 shrink-0 place-items-center rounded-2xl',
+                          'grid h-10 w-10 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-2xl',
                           entry.practiceDone
                             ? 'bg-sage-soft text-primary'
                             : entry.learnedDone
@@ -213,7 +213,7 @@ export default function HistoryPage() {
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
-                          <h3 className="truncate font-display text-lg font-bold">{entry.sceneNameZh}</h3>
+                          <h3 className="truncate font-display text-base sm:text-lg font-bold">{entry.sceneNameZh}</h3>
                           <Badge variant="muted" className="shrink-0 text-[10px]">
                             {entry.source === 'route' ? '路线' : entry.source === 'example' ? '推荐' : '自定义'}
                           </Badge>
@@ -333,7 +333,7 @@ export default function HistoryPage() {
         {/* 清空确认弹层 */}
         {confirmClear && (
           <div
-            className="fixed inset-0 z-50 grid place-items-center bg-background/80 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm p-4 sm:items-center"
             onClick={() => setConfirmClear(false)}
           >
             <Card

@@ -135,8 +135,13 @@ export const useUserStore = create<UserState>()(
             lastLoginAt: user.lastLoginAt,
           };
           set({ currentUser: localUser });
-        } catch {
-          // 忽略刷新失败
+        } catch (err) {
+          // token 过期或无效：清除用户状态，让用户重新登录
+          // request() 已在 401 时调用了 clearToken()
+          if (err instanceof Error && err.message === '登录已过期') {
+            set({ currentUser: null });
+          }
+          // 其他错误（如网络问题）忽略，保留当前用户状态
         }
       },
 
@@ -153,8 +158,18 @@ export const useUserStore = create<UserState>()(
       partialize: (s) => ({
         currentUser: s.currentUser,
         guestUsageCount: s.guestUsageCount,
-        guestMaxUsage: s.guestMaxUsage,
+        // 不持久化 guestMaxUsage，始终使用代码中的 GUEST_MAX_USAGE 常量
+        // 避免修改配额后旧值残留在 localStorage
       }),
+      // 迁移：移除旧的 guestMaxUsage 字段，合并时强制使用当前常量
+      merge: (persisted, current) => {
+        const p = (persisted as Partial<UserState>) || {};
+        return {
+          ...current,
+          ...p,
+          guestMaxUsage: GUEST_MAX_USAGE, // 始终使用代码常量，覆盖任何旧持久化值
+        };
+      },
     },
   ),
 );

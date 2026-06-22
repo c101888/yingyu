@@ -70,7 +70,7 @@ export default function Learn() {
             <BookOpen className="h-3.5 w-3.5" />
             最小学习 · 轻松几步就学会
           </Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">{content.sceneNameZh}</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">{content.sceneNameZh}</h1>
           <p className="mt-2 text-muted-foreground">
             先听懂、再跟读，最后做一个小任务。家长可以陪孩子一起完成。
           </p>
@@ -230,7 +230,7 @@ function LearnSection({
   children: React.ReactNode;
 }) {
   return (
-    <section className="mt-8 animate-fade-up" style={{ animationDelay: `${delay}s` }}>
+    <section className="mt-6 sm:mt-8 animate-fade-up" style={{ animationDelay: `${delay}s` }}>
       <div className="mb-3 flex items-center gap-2.5">
         <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground shadow-soft">
           {step}

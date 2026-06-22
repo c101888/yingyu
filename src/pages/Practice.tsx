@@ -133,7 +133,7 @@ export default function Practice() {
             <Play className="h-3.5 w-3.5" />
             角色演练 · 大声说出来
           </Badge>
-          <h1 className="font-display text-3xl font-bold sm:text-4xl">{content.sceneNameZh}</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-4xl">{content.sceneNameZh}</h1>
           <p className="mt-2 text-muted-foreground">
             家长说家长的，孩子说孩子的。不用完美，敢说、能跟上就很棒！
           </p>
@@ -167,7 +167,7 @@ export default function Practice() {
                     key={v.word}
                     className="flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5"
                   >
-                    <SpeakButton text={v.word} variant="ghost" size="icon" className="h-6 w-6 p-0" />
+                    <SpeakButton text={v.word} variant="ghost" size="icon" className="h-9 w-9 p-0" />
                     <span className="font-display text-sm font-bold">{v.word}</span>
                     <span className="text-xs text-muted-foreground">{v.meaningZh}</span>
                   </div>
@@ -207,7 +207,7 @@ export default function Practice() {
             {/* 家长台词 */}
             <div className="flex justify-start animate-fade-up">
               <div className="flex max-w-[85%] items-start gap-3">
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-peach-soft text-2xl shadow-soft">
+                <span className="grid h-10 w-10 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-2xl bg-peach-soft text-xl sm:text-2xl shadow-soft">
                   👩
                 </span>
                 <div className="rounded-3xl rounded-tl-md border border-border bg-card px-3 py-2 sm:px-5 sm:py-3 shadow-soft">
@@ -246,7 +246,7 @@ export default function Practice() {
                     </Button>
                   </div>
                 </div>
-                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sage-soft text-2xl shadow-soft">
+                <span className="grid h-10 w-10 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-2xl bg-sage-soft text-xl sm:text-2xl shadow-soft">
                   🧒
                 </span>
               </div>

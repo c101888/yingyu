@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Star,
@@ -13,8 +13,10 @@ import {
   Gift,
   GraduationCap,
   Route as RouteIcon,
+  LogIn,
 } from 'lucide-react';
 import { PageShell } from '@/components/PageShell';
+import { AuthDialog } from '@/components/AuthDialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -45,6 +47,7 @@ export default function Profile() {
   const allRecords = usePointsStore((s) => s.records);
   const allHistoryEntries = useHistoryStore((s) => s.entries);
   const tierInfo = useTierStore();
+  const [showAuth, setShowAuth] = useState(false);
 
   // 进入页面时刷新 tier 信息
   useEffect(() => {
@@ -54,7 +57,7 @@ export default function Profile() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser?.id]);
 
-  // 未登录：引导登录
+  // 未登录：引导登录（直接在当前页面弹出登录框，不跳转首页）
   if (!currentUser) {
     return (
       <PageShell>
@@ -66,11 +69,19 @@ export default function Profile() {
           <p className="text-muted-foreground">
             登录后可查看你的积分、等级、勋章和学习记录，还能无限使用场景生成。
           </p>
-          <Button size="lg" onClick={() => navigate('/')}>
-            <Home className="h-4 w-4" />
-            返回首页登录
+          <Button size="lg" onClick={() => setShowAuth(true)}>
+            <LogIn className="h-4 w-4" />
+            立即登录
           </Button>
         </div>
+        <AuthDialog
+          open={showAuth}
+          onClose={() => setShowAuth(false)}
+          onSuccess={() => {
+            // 登录成功后刷新 tier 信息，页面会自动重新渲染
+            tierInfo.refresh();
+          }}
+        />
       </PageShell>
     );
   }
@@ -100,11 +111,11 @@ export default function Profile() {
           <CardContent className="p-4 sm:p-8">
             <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-center gap-4">
-                <span className="grid h-20 w-20 place-items-center rounded-3xl bg-gradient-to-br from-sage-soft to-peach-soft text-5xl">
+                <span className="grid h-16 w-16 sm:h-20 sm:w-20 place-items-center rounded-3xl bg-gradient-to-br from-sage-soft to-peach-soft text-4xl sm:text-5xl">
                   {currentUser.avatar}
                 </span>
                 <div>
-                  <h1 className="font-display text-2xl font-bold">{currentUser.nickname}</h1>
+                  <h1 className="font-display text-xl font-bold sm:text-2xl">{currentUser.nickname}</h1>
                   <p className="mt-1 text-sm text-muted-foreground">
                     @{currentUser.username} · {currentUser.email}
                   </p>
@@ -267,7 +278,7 @@ export default function Profile() {
                 <Star className="h-5 w-5 fill-amber-400 text-amber-500" />
                 <span className="text-sm font-semibold">总星数</span>
               </div>
-              <p className="mt-2 font-display text-4xl font-bold text-amber-700">
+              <p className="mt-2 font-display text-3xl font-bold text-amber-700 sm:text-4xl">
                 {totalStars}
                 <span className="ml-1 text-lg text-amber-500">⭐</span>
               </p>
@@ -284,7 +295,7 @@ export default function Profile() {
                 <Award className="h-5 w-5" />
                 <span className="text-sm font-semibold">当前等级</span>
               </div>
-              <p className="mt-2 font-display text-3xl font-bold">
+              <p className="mt-2 font-display text-2xl font-bold sm:text-3xl">
                 <span className="mr-1">{currentLevel.badge}</span>
                 Lv.{currentLevel.level}
               </p>
@@ -301,7 +312,7 @@ export default function Profile() {
               </div>
               {nextLevel ? (
                 <>
-                  <p className="mt-2 font-display text-3xl font-bold text-purple-700">
+                  <p className="mt-2 font-display text-2xl font-bold sm:text-3xl text-purple-700">
                     {remainStars}
                     <span className="ml-1 text-base text-purple-500">⭐</span>
                   </p>
@@ -413,9 +424,9 @@ export default function Profile() {
                 {records.slice(0, 20).map((r) => (
                   <div
                     key={r.id}
-                    className="flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-colors hover:bg-secondary/30"
+                    className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-border bg-card p-2.5 sm:p-3 transition-colors hover:bg-secondary/30"
                   >
-                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-xl">
+                    <span className="grid h-9 w-9 sm:h-10 sm:w-10 shrink-0 place-items-center rounded-xl bg-amber-100 text-xl">
                       ⭐
                     </span>
                     <div className="min-w-0 flex-1">

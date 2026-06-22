@@ -379,7 +379,7 @@ export default function Home() {
 
       {/* 学习历史 */}
       {historyEntries.length > 0 && (
-        <section className="mx-auto mt-10 max-w-4xl animate-fade-up" style={{ animationDelay: '0.14s' }}>
+        <section className="mx-auto mt-6 sm:mt-10 max-w-4xl animate-fade-up" style={{ animationDelay: '0.14s' }}>
           <div className="mb-4 flex items-end justify-between">
             <div className="flex items-center gap-2">
               <History className="h-5 w-5 text-primary" />
@@ -398,44 +398,43 @@ export default function Home() {
               </button>
             )}
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-3">
             {historyEntries.slice(0, 6).map((entry) => {
               const progressLabel = entry.practiceDone
-                ? '已完成演练'
+                ? '已完成'
                 : entry.learnedDone
-                  ? '已学完，待演练'
-                  : '未完成学习';
+                  ? '待演练'
+                  : '未完成';
               const timeStr = formatRelativeTime(entry.createdAt);
               const diffLabel = entry.difficulty === 'easy' ? '简单' : entry.difficulty === 'medium' ? '难度' : '复杂';
               return (
                 <div
                   key={entry.id}
-                  className="group relative flex flex-col gap-2 rounded-2xl border border-border bg-card p-4 shadow-soft transition-all hover:border-primary/30 hover:shadow-soft-lg"
+                  className="group relative flex flex-col gap-1.5 rounded-xl border border-border bg-card p-3 shadow-soft transition-all hover:border-primary/30 hover:shadow-soft-lg sm:gap-2 sm:rounded-2xl sm:p-4"
                 >
                   <button
                     onClick={() => handleRestoreHistory(entry.id)}
-                    className="flex flex-1 flex-col gap-2 text-left"
+                    className="flex flex-1 flex-col gap-1.5 text-left sm:gap-2"
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-2xl bg-sage-soft text-primary">
+                    <div className="flex items-center justify-between gap-1.5">
+                      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-sage-soft text-primary sm:h-9 sm:w-9 sm:rounded-2xl">
                         {entry.practiceDone ? (
-                          <CheckCircle2 className="h-4 w-4" />
+                          <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         ) : entry.learnedDone ? (
-                          <BookOpen className="h-4 w-4" />
+                          <BookOpen className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         ) : (
-                          <Play className="h-4 w-4" />
+                          <Play className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                         )}
                       </span>
                       <div className="flex shrink-0 items-center gap-1">
                         <Badge variant="muted" className="text-[10px]">
                           {entry.source === 'route' ? '路线' : entry.source === 'example' ? '推荐' : '自定义'}
                         </Badge>
-                        <Badge variant="muted" className="text-[10px]">{diffLabel}</Badge>
                       </div>
                     </div>
-                    <h3 className="truncate font-display font-bold leading-tight">{entry.sceneNameZh}</h3>
+                    <h3 className="truncate font-display text-sm font-bold leading-tight sm:text-base">{entry.sceneNameZh}</h3>
                     <p className="truncate text-xs text-primary/70">{entry.sceneNameEn}</p>
-                    <div className="mt-auto flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                    <div className="mt-auto flex items-center gap-1 text-[10px] text-muted-foreground sm:text-[11px]">
                       <span className={entry.practiceDone ? 'text-primary' : entry.learnedDone ? 'text-amber-600' : ''}>
                         {progressLabel}
                       </span>
@@ -446,7 +445,7 @@ export default function Home() {
                   <button
                     onClick={() => removeHistoryEntry(entry.id)}
                     aria-label="删除记录"
-                    className="absolute right-2 top-2 rounded-lg p-1 text-muted-foreground/40 opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                    className="absolute right-1.5 top-1.5 rounded-lg p-1 text-muted-foreground/40 opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
                   >
                     <Trash2 className="h-3.5 w-3.5" />
                   </button>
@@ -458,7 +457,7 @@ export default function Home() {
       )}
 
       {/* 推荐场景 */}
-      <section className="mx-auto mt-12 max-w-4xl animate-fade-up" style={{ animationDelay: '0.16s' }}>
+      <section className="mx-auto mt-8 sm:mt-12 max-w-4xl animate-fade-up" style={{ animationDelay: '0.16s' }}>
         <div className="mb-5 flex items-end justify-between">
           <div>
             <h2 className="font-display text-2xl font-bold">试试这些生活场景</h2>
@@ -507,10 +506,10 @@ export default function Home() {
       {/* 登录/注册弹窗 */}
       {showUserMenu && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm p-4 sm:items-center"
           onClick={() => setShowUserMenu(false)}
         >
-          <Card className="max-w-md w-full mx-4 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
+          <Card className="max-w-md w-full shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
             <CardContent className="p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-xl font-bold">
@@ -624,10 +623,10 @@ export default function Home() {
       {/* 游客次数用尽提示 */}
       {showLoginPrompt && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm p-4 sm:items-center"
           onClick={() => setShowLoginPrompt(false)}
         >
-          <Card className="max-w-md w-full mx-4 border-peach/30 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
+          <Card className="max-w-md w-full border-peach/30 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
             <CardContent className="p-6 text-center">
               <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-peach-soft text-3xl">🔒</span>
               <h3 className="mb-2 font-display text-xl font-bold">游客体验次数已用完</h3>
@@ -657,10 +656,10 @@ export default function Home() {
       {/* 升级提示弹窗（登录用户额度用尽） */}
       {showUpgradePrompt && (
         <div
-          className="fixed inset-0 z-50 grid place-items-center bg-background/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 backdrop-blur-sm p-4 sm:items-center"
           onClick={() => setShowUpgradePrompt(false)}
         >
-          <Card className="max-w-md w-full mx-4 border-purple/30 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
+          <Card className="max-w-md w-full border-purple/30 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
             <CardContent className="p-6 text-center">
               <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-purple-100 text-3xl">
                 {getTierBadge(tierInfo.tier)}
