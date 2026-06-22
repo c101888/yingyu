@@ -10,6 +10,7 @@ import adminRoutes from './routes/admin.js';
 import sceneCacheRoutes from './routes/sceneCache.js';
 import tierRoutes from './routes/tier.js';
 import rewardsRoutes from './routes/rewards.js';
+import llmRoutes from './routes/llm.js';
 import { createDefaultAdmin } from './scripts/createAdmin.js';
 import cron from 'node-cron';
 import fs from 'fs';
@@ -33,6 +34,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/scene-cache', sceneCacheRoutes);
 app.use('/api/tier', tierRoutes);
 app.use('/api/rewards', rewardsRoutes);
+app.use('/api/llm', llmRoutes);
 
 // 错误处理
 app.use(errorHandler);

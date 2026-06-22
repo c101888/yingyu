@@ -20,7 +20,7 @@ async function request<T = any>(path: string, options: RequestInit = {}): Promis
   if (res.status === 401) {
     localStorage.removeItem('admin_token');
     localStorage.removeItem('admin_user');
-    window.location.href = '/login';
+    window.location.href = '/admin/login';
     throw new Error('登录已过期');
   }
   
