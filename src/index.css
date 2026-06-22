@@ -86,4 +86,35 @@
   .scroll-soft::-webkit-scrollbar-track {
     background: transparent;
   }
+  /* PWA 安全区域适配（刘海屏/底部横条） */
+  .safe-top {
+    padding-top: env(safe-area-inset-top, 0);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+  .safe-x {
+    padding-left: env(safe-area-inset-left, 0);
+    padding-right: env(safe-area-inset-right, 0);
+  }
+}
+
+/* PWA 独立显示模式下的适配 */
+@media (display-mode: standalone) {
+  body {
+    user-select: none;
+    -webkit-user-select: none;
+  }
+  /* 允许输入框选择文本 */
+  input, textarea, [contenteditable] {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+}
+
+/* 横屏优化：宽屏下限制内容最大宽度，避免拉伸过度 */
+@media (orientation: landscape) and (min-width: 768px) {
+  .container {
+    max-width: 1024px;
+  }
 }

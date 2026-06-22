@@ -1,0 +1,54 @@
+{
+  "name": "家庭场景英语 · 亲子日常学习",
+  "short_name": "家庭英语",
+  "description": "把英语嵌入孩子的一天：基于家庭日常场景的亲子英语学习应用",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#FFF7ED",
+  "theme_color": "#FB923C",
+  "lang": "zh-CN",
+  "dir": "ltr",
+  "categories": ["education", "kids", "family"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "生成今日学习",
+      "short_name": "生成",
+      "description": "输入场景，立即生成今日英语学习内容",
+      "url": "/?action=generate"
+    },
+    {
+      "name": "学习路线",
+      "short_name": "路线",
+      "description": "查看每日学习路线",
+      "url": "/daily-route"
+    },
+    {
+      "name": "用户中心",
+      "short_name": "我的",
+      "description": "查看个人信息和权益",
+      "url": "/profile"
+    }
+  ]
+}

@@ -3,11 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
+    <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#f5e6d3" />
+    <meta name="theme-color" content="#FB923C" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="家庭英语" />
+    <meta name="application-name" content="家庭英语" />
+    <meta name="description" content="把英语嵌入孩子的一天：基于家庭日常场景的亲子英语学习应用" />
     <title>家庭场景英语 · 亲子日常学习</title>
     <script type="module">
       if (import.meta.hot?.on) {
@@ -24,5 +29,16 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // 注册 Service Worker（仅生产环境）
+      if ('serviceWorker' in navigator && location.protocol === 'https:' || ('serviceWorker' in navigator && location.hostname && !location.hostname.includes('localhost'))) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js').then(
+            (reg) => console.log('[PWA] Service Worker 注册成功', reg.scope),
+            (err) => console.warn('[PWA] Service Worker 注册失败', err)
+          );
+        });
+      }
+    </script>
   </body>
 </html>
