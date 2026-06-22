@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">家庭英语</string>
+    <string name="title_activity_main">家庭英语</string>
+    <string name="package_name">com.c101888.yingyu</string>
+    <string name="custom_url_scheme">com.c101888.yingyu</string>
+</resources>

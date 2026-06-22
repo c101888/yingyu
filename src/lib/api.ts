@@ -1,7 +1,11 @@
 // 前端 API 客户端：与后台 server 通信
 // 后台未启动时降级到 localStorage（离线模式），保证 MVP 可用
 
-const API_BASE = '/api';
+// 生产环境（APK）使用线上服务器地址，开发环境用相对路径
+const PROD_API_BASE = 'http://47.250.140.131:7500/api';
+const DEV_API_BASE = '/api';
+const isProd = import.meta.env.PROD;
+const API_BASE = isProd ? PROD_API_BASE : DEV_API_BASE;
 
 // 获取 token
 export function getToken(): string | null {
@@ -30,7 +34,9 @@ export async function checkBackend(): Promise<boolean> {
     return backendAvailable;
   }
   try {
-    const res = await fetch(`${API_BASE}/../health`, { method: 'GET' });
+    // 生产环境用完整 URL，开发环境用相对路径
+    const healthUrl = isProd ? 'http://47.250.140.131:7500/health' : '/health';
+    const res = await fetch(healthUrl, { method: 'GET' });
     backendAvailable = res.ok;
   } catch {
     backendAvailable = false;

@@ -40,6 +40,13 @@ server/backups/
 server/admin-ui/dist
 server/admin-ui/node_modules
 
+# Android 构建产物（保留源码，排除构建缓存）
+android/app/build
+android/.gradle
+android/hs_err_pid*.log
+*.keystore
+*.keystore.properties
+
 # 系统文件
 Thumbs.db
 ehthumbs.db

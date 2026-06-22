@@ -2,7 +2,10 @@ import type { SceneContent, Difficulty } from './types';
 import { api, checkBackend } from './api';
 
 // 经 Vite 代理调用火山引擎 ARK（GLM-5.2），代理自动注入 Authorization
-const LLM_ENDPOINT = '/api/llm/chat/completions';
+// 生产环境（APK）使用线上后端地址，开发环境用相对路径
+const LLM_ENDPOINT = import.meta.env.PROD
+  ? 'http://47.250.140.131:7500/api/llm/chat/completions'
+  : '/api/llm/chat/completions';
 const MODEL = 'glm-5.2';
 const MAX_RETRY = 2;
 
