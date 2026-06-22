@@ -1,6 +1,6 @@
 // 会员等级 + 生成额度状态管理
 import { create } from 'zustand';
-import { api, checkBackend } from '@/lib/api';
+import { api, checkBackend, isAuthError } from '@/lib/api';
 import type { Tier } from '@/lib/tiers';
 import { TIER_CONFIGS } from '@/lib/tiers';
 import { useUserStore } from './useUserStore';
@@ -94,6 +94,11 @@ export const useTierStore = create<TierState>((set, get) => ({
         loading: false,
       });
     } catch (err) {
+      // 登录已过期：onUnauthorized 回调已清除 currentUser，静默处理不显示错误
+      if (isAuthError(err)) {
+        set({ loading: false, error: null });
+        return;
+      }
       set({ loading: false, error: err instanceof Error ? err.message : '获取等级信息失败' });
     }
   },
@@ -122,6 +127,11 @@ export const useTierStore = create<TierState>((set, get) => ({
       });
       return true;
     } catch (err) {
+      // 登录已过期：onUnauthorized 回调已清除 currentUser，静默返回 false
+      // 调用方（startGenerate）会检测到 currentUser 为 null，走游客流程
+      if (isAuthError(err)) {
+        return false;
+      }
       // 超限或其他错误
       const msg = err instanceof Error ? err.message : '生成次数检查失败';
       if (msg.includes('上限') || msg.includes('用完')) {

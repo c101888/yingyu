@@ -1,7 +1,7 @@
 // 用户系统：支持后端 API（登录后跨设备同步）+ localStorage 降级（离线/游客模式）
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { api, setToken, clearToken, checkBackend } from '@/lib/api';
+import { api, setToken, clearToken, checkBackend, setOnUnauthorized, isAuthError } from '@/lib/api';
 import type { Tier } from '@/lib/tiers';
 
 export interface LocalUser {
@@ -136,9 +136,8 @@ export const useUserStore = create<UserState>()(
           };
           set({ currentUser: localUser });
         } catch (err) {
-          // token 过期或无效：清除用户状态，让用户重新登录
-          // request() 已在 401 时调用了 clearToken()
-          if (err instanceof Error && err.message === '登录已过期') {
+          // token 过期或无效：onUnauthorized 回调已清除 currentUser，静默处理
+          if (isAuthError(err)) {
             set({ currentUser: null });
           }
           // 其他错误（如网络问题）忽略，保留当前用户状态
@@ -173,3 +172,9 @@ export const useUserStore = create<UserState>()(
     },
   ),
 );
+
+// 注册 401 回调：任何 API 返回 401 时立即清除 currentUser
+// 这样 token 过期后 UI 会立即切换到游客模式，避免僵尸登录态导致用户看到"登录已过期"错误
+setOnUnauthorized(() => {
+  useUserStore.setState({ currentUser: null });
+});

@@ -123,7 +123,7 @@ export default function Done() {
 
         {/* 今日场景 */}
         <Card className="mt-8 overflow-hidden border-primary/20 animate-fade-up" style={{ animationDelay: '0.1s' }}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">今日场景</p>
@@ -238,10 +238,10 @@ export default function Done() {
 
         {/* 学过的句子回顾 */}
         <Card className="mt-6 animate-fade-up" style={{ animationDelay: '0.22s' }}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 sm:p-6">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display font-bold">今天学过的句子</h3>
-              <Badge variant="muted" className="text-[10px]">
+              <Badge variant="muted" className="text-[10px] sm:text-xs">
                 {diffLabel} · {shownSentences.length} 句
               </Badge>
             </div>

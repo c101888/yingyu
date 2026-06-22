@@ -23,6 +23,27 @@ export function clearToken(): void {
   localStorage.removeItem('app_user');
 }
 
+// 401 未授权回调：由 useUserStore 注册，任何 API 返回 401 时立即清除 currentUser
+// 避免 token 过期后僵尸登录态残留，导致用户看到"登录已过期"错误
+let onUnauthorized: (() => void) | null = null;
+export function setOnUnauthorized(cb: (() => void) | null): void {
+  onUnauthorized = cb;
+}
+
+// 认证错误类：token 过期或无效时抛出
+// 调用方可用 isAuthError(err) 判断，静默处理而不显示错误
+export class AuthError extends Error {
+  constructor() {
+    super('登录已过期');
+    this.name = 'AuthError';
+  }
+}
+
+// 判断是否为认证错误（token 过期/无效）
+export function isAuthError(err: unknown): boolean {
+  return err instanceof AuthError;
+}
+
 // 检查后台是否可用（通过健康检查）
 let backendAvailable: boolean | null = null;
 let lastCheckTime = 0;
@@ -59,7 +80,10 @@ async function request<T = unknown>(path: string, options: RequestInit = {}): Pr
 
   if (res.status === 401) {
     clearToken();
-    throw new Error('登录已过期');
+    // 立即通知 store 清除 currentUser，UI 马上切换到游客模式
+    // 避免僵尸登录态导致后续操作报"登录已过期"
+    onUnauthorized?.();
+    throw new AuthError();
   }
 
   const data = await res.json() as T;

@@ -102,7 +102,7 @@ export default function LearnCenter() {
         </Card>
 
         {/* 模块网格 */}
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3">
           {MODULES.map((m, i) => {
             const Icon = m.icon;
             return (
@@ -111,12 +111,12 @@ export default function LearnCenter() {
                 className="transition-all hover:-translate-y-0.5 hover:shadow-soft-lg animate-fade-up"
                 style={{ animationDelay: `${0.1 + i * 0.04}s` }}
               >
-                <CardContent className="p-5">
+                <CardContent className="p-4 sm:p-5">
                   <div className="mb-3 flex items-center justify-between">
                     <span className={cn('grid h-11 w-11 place-items-center rounded-2xl', m.color)}>
                       <Icon className="h-5 w-5" />
                     </span>
-                    <Badge variant="muted" className="text-[10px]">即将上线</Badge>
+                    <Badge variant="muted" className="text-[10px] sm:text-xs">即将上线</Badge>
                   </div>
                   <h3 className="font-display text-lg font-bold">{m.title}</h3>
                   <p className="mt-1 text-sm text-muted-foreground">{m.desc}</p>
@@ -150,7 +150,7 @@ export default function LearnCenter() {
                     <p className="font-semibold">{s.title}</p>
                     <p className="text-xs text-muted-foreground">{s.desc}</p>
                   </div>
-                  {!s.done && <Badge variant="muted" className="text-[10px]">待开放</Badge>}
+                  {!s.done && <Badge variant="muted" className="text-[10px] sm:text-xs">待开放</Badge>}
                 </div>
               ))}
             </div>

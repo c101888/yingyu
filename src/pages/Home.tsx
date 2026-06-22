@@ -14,6 +14,7 @@ import { useHistoryStore } from '@/store/useHistoryStore';
 import { useUserStore } from '@/store/useUserStore';
 import { useTierStore } from '@/store/useTierStore';
 import { getTierName, getTierBadge } from '@/lib/tiers';
+import { isAuthError } from '@/lib/api';
 import type { ExampleScene, Difficulty } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { AVATAR_LIST } from '@/lib/avatars';
@@ -174,8 +175,19 @@ export default function Home() {
       // 登录用户：增加 tier 计数（后端会再次校验，超限则抛错）
       if (currentUser) {
         try {
-          await tierInfo.incrGenCount();
+          const ok = await tierInfo.incrGenCount();
+          // incrGenCount 返回 false 表示登录已过期（onUnauthorized 已清除 currentUser）
+          // 静默处理，不显示错误，UI 会自动切换到游客模式
+          if (!ok) {
+            setGenerating(false);
+            return;
+          }
         } catch (err) {
+          // 登录已过期：静默处理（onUnauthorized 已清除 currentUser）
+          if (isAuthError(err)) {
+            setGenerating(false);
+            return;
+          }
           // 后端判定超限
           setGenerating(false);
           setShowUpgradePrompt(true);
@@ -189,6 +201,11 @@ export default function Home() {
       }
       navigate('/scene-result');
     } catch (err) {
+      // 登录已过期：静默处理（onUnauthorized 已清除 currentUser，UI 切换到游客模式）
+      if (isAuthError(err)) {
+        setGenerating(false);
+        return;
+      }
       setError(err instanceof Error ? err.message : '生成失败，请重试');
     } finally {
       setGenerating(false);
@@ -301,12 +318,32 @@ export default function Home() {
             </div>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <span className="hidden text-xs text-muted-foreground sm:inline">⌘/Ctrl + Enter 快速生成</span>
+              {/* 移动端：次数提示独占一行（避免在按钮旁换行） */}
+              {currentUser && (
+                <button
+                  onClick={() => navigate('/upgrade')}
+                  className="flex items-center gap-1.5 self-start px-1 text-xs text-muted-foreground transition-colors hover:text-foreground sm:hidden"
+                  title="查看升级方案"
+                >
+                  <span
+                    className={cn(
+                      'h-2 w-2 shrink-0 rounded-full',
+                      tierInfo.tier === 'pro'
+                        ? 'bg-purple-500'
+                        : tierInfo.tier === 'plus'
+                          ? 'bg-blue-500'
+                          : 'bg-amber-500',
+                    )}
+                  />
+                  <span>{tierInfo.getRemainingText()}</span>
+                </button>
+              )}
               <div className="flex items-center gap-2">
-                {/* 生成按钮左边：当前权益使用次数（登录用户显示，纯文字+小圆点指示 tier） */}
+                {/* 平板/桌面端：次数提示在按钮旁 */}
                 {currentUser && (
                   <button
                     onClick={() => navigate('/upgrade')}
-                    className="flex h-11 items-center gap-1.5 px-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                    className="hidden h-11 items-center gap-1.5 px-1 text-xs text-muted-foreground transition-colors hover:text-foreground sm:flex"
                     title="查看升级方案"
                   >
                     <span
@@ -356,22 +393,22 @@ export default function Home() {
       <section className="mx-auto mt-6 max-w-4xl animate-fade-up" style={{ animationDelay: '0.12s' }}>
         <button
           onClick={() => navigate('/daily-route')}
-          className="group flex w-full items-center gap-4 rounded-3xl border-2 border-dashed border-border bg-card/50 p-5 text-left transition-all hover:border-primary/40 hover:bg-card"
+          className="group flex w-full flex-col gap-2 rounded-3xl border-2 border-dashed border-border bg-card/50 p-4 text-left transition-all hover:border-primary/40 hover:bg-card sm:flex-row sm:items-center sm:gap-4 sm:p-5"
         >
           <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sage-soft text-2xl">
             🗓️
           </span>
-          <div className="flex-1">
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
-              <RouteIcon className="h-4 w-4 text-primary" />
-              <h3 className="font-display font-bold">每日路线</h3>
+              <RouteIcon className="h-4 w-4 shrink-0 text-primary" />
+              <h3 className="font-display font-bold whitespace-nowrap">每日路线</h3>
             </div>
             <p className="text-sm text-muted-foreground">
               把英语嵌入孩子的一天：起床 · 刷牙 · 早餐 · 出门 · 上学
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="muted">{route.nodes.length} 个生活节点</Badge>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <Badge variant="muted" className="whitespace-nowrap">{route.nodes.length} 个生活节点</Badge>
             <ArrowRight className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
           </div>
         </button>
@@ -427,7 +464,7 @@ export default function Home() {
                         )}
                       </span>
                       <div className="flex shrink-0 items-center gap-1">
-                        <Badge variant="muted" className="text-[10px]">
+                        <Badge variant="muted" className="text-[10px] sm:text-xs">
                           {entry.source === 'route' ? '路线' : entry.source === 'example' ? '推荐' : '自定义'}
                         </Badge>
                       </div>
@@ -510,7 +547,7 @@ export default function Home() {
           onClick={() => setShowUserMenu(false)}
         >
           <Card className="max-w-md w-full shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-xl font-bold">
                   {authMode === 'login' ? '登录' : '注册'}
@@ -627,7 +664,7 @@ export default function Home() {
           onClick={() => setShowLoginPrompt(false)}
         >
           <Card className="max-w-md w-full border-peach/30 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
-            <CardContent className="p-6 text-center">
+            <CardContent className="p-4 text-center sm:p-6">
               <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-peach-soft text-3xl">🔒</span>
               <h3 className="mb-2 font-display text-xl font-bold">游客体验次数已用完</h3>
               <p className="mb-5 text-sm text-muted-foreground">
@@ -660,7 +697,7 @@ export default function Home() {
           onClick={() => setShowUpgradePrompt(false)}
         >
           <Card className="max-w-md w-full border-purple/30 shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
-            <CardContent className="p-6 text-center">
+            <CardContent className="p-4 text-center sm:p-6">
               <span className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-3xl bg-purple-100 text-3xl">
                 {getTierBadge(tierInfo.tier)}
               </span>

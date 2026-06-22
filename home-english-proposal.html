@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>家常英语 HomeEnglish · 创意提案</title>
+<style>
+  :root {
+    --cream: #FBF6EC;
+    --cream-deep: #F3EAD6;
+    --sage: #6B8E6E;
+    --sage-deep: #4F7355;
+    --orange: #E8915A;
+    --orange-deep: #D6743C;
+    --ink: #2F3A33;
+    --ink-soft: #5C6B62;
+    --line: #E5DBC4;
+    --white: #FFFFFF;
+    --shadow: 0 6px 24px rgba(80, 60, 30, 0.08);
+    --shadow-soft: 0 2px 10px rgba(80, 60, 30, 0.05);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+
+  /* ===== Hero ===== */
+  .hero {
+    background: linear-gradient(135deg, #FBF6EC 0%, #F3EAD6 50%, #EADFC4 100%);
+    padding: 80px 0 64px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: "";
+    position: absolute;
+    top: -80px; right: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(232,145,90,0.15), transparent 70%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: "";
+    position: absolute;
+    bottom: -100px; left: -60px;
+    width: 280px; height: 280px;
+    background: radial-gradient(circle, rgba(107,142,110,0.18), transparent 70%);
+    border-radius: 50%;
+  }
+  .hero-inner { position: relative; z-index: 1; }
+  .hero-tag {
+    display: inline-block;
+    background: var(--white);
+    color: var(--sage-deep);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 999px;
+    box-shadow: var(--shadow-soft);
+    margin-bottom: 20px;
+    letter-spacing: 0.5px;
+  }
+  .hero h1 {
+    font-size: 52px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 8px;
+    letter-spacing: -1px;
+  }
+  .hero h1 .en {
+    font-size: 28px;
+    color: var(--orange);
+    font-weight: 600;
+    margin-left: 12px;
+    vertical-align: middle;
+  }
+  .hero .tagline {
+    font-size: 22px;
+    color: var(--sage-deep);
+    font-weight: 500;
+    margin-bottom: 24px;
+  }
+  .hero .desc {
+    font-size: 16px;
+    color: var(--ink-soft);
+    max-width: 620px;
+    line-height: 1.9;
+  }
+  .hero-meta {
+    display: flex;
+    gap: 28px;
+    margin-top: 36px;
+    flex-wrap: wrap;
+  }
+  .hero-meta .item {
+    background: rgba(255,255,255,0.7);
+    padding: 14px 20px;
+    border-radius: 14px;
+    backdrop-filter: blur(6px);
+  }
+  .hero-meta .label { font-size: 12px; color: var(--ink-soft); margin-bottom: 4px; }
+  .hero-meta .value { font-size: 15px; font-weight: 600; color: var(--ink); }
+
+  /* ===== Section ===== */
+  section { padding: 64px 0; }
+  .sec-head { margin-bottom: 36px; }
+  .sec-num {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--orange);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .sec-head h2 {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--ink);
+    margin-bottom: 10px;
+    letter-spacing: -0.5px;
+  }
+  .sec-head .sub { font-size: 15px; color: var(--ink-soft); }
+
+  /* ===== Problem Cards ===== */
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+  .problem-card {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+    border-left: 4px solid var(--orange);
+    transition: transform 0.2s;
+  }
+  .problem-card:hover { transform: translateY(-3px); }
+  .problem-card .icon {
+    font-size: 28px;
+    margin-bottom: 12px;
+  }
+  .problem-card h3 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .problem-card p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.7;
+  }
+
+  /* ===== Solution ===== */
+  .solution-box {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 44px;
+    box-shadow: var(--shadow);
+  }
+  .solution-quote {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--sage-deep);
+    line-height: 1.7;
+    padding-left: 20px;
+    border-left: 4px solid var(--sage);
+    margin-bottom: 28px;
+  }
+  .solution-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-top: 28px;
+  }
+  .step {
+    text-align: center;
+    padding: 20px 12px;
+    background: var(--cream);
+    border-radius: 14px;
+    position: relative;
+  }
+  .step .num {
+    width: 32px; height: 32px;
+    background: var(--sage);
+    color: var(--white);
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+  .step h4 { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 6px; }
+  .step p { font-size: 12px; color: var(--ink-soft); line-height: 1.5; }
+
+  /* ===== Users ===== */
+  .users-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .user-card {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 28px;
+    box-shadow: var(--shadow);
+  }
+  .user-card .role {
+    display: inline-block;
+    background: var(--sage);
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 999px;
+    margin-bottom: 14px;
+  }
+  .user-card .role.child { background: var(--orange); }
+  .user-card h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; }
+  .user-card ul { list-style: none; padding: 0; }
+  .user-card li {
+    font-size: 14px;
+    color: var(--ink-soft);
+    padding: 6px 0;
+    padding-left: 20px;
+    position: relative;
+  }
+  .user-card li::before {
+    content: "•";
+    color: var(--sage);
+    position: absolute;
+    left: 6px;
+    font-weight: 700;
+  }
+
+  /* ===== Flow ===== */
+  .flow-wrap {
+    background: var(--white);
+    border-radius: 24px;
+    padding: 40px;
+    box-shadow: var(--shadow);
+  }
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .flow-node {
+    flex: 1;
+    min-width: 130px;
+    text-align: center;
+    padding: 16px 8px;
+    position: relative;
+  }
+  .flow-node .circle {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: var(--cream-deep);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+    border: 2px solid var(--sage);
+  }
+  .flow-node h4 { font-size: 13px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+  .flow-node p { font-size: 11px; color: var(--ink-soft); }
+  .flow-arrow {
+    display: flex;
+    align-items: center;
+    color: var(--sage);
+    font-size: 20px;
+    padding: 0 2px;
+  }
+
+  /* ===== Features ===== */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .feature-card {
+    background: var(--white);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: var(--shadow-soft);
+    border-top: 3px solid var(--sage);
+  }
+  .feature-card.orange { border-top-color: var(--orange); }
+  .feature-card .icon {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+  .feature-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 8px; }
+  .feature-card p { font-size: 13px; color: var(--ink-soft); line-height: 1.6; }
+
+  /* ===== Sample ===== */
+  .sample-box {
+    background: linear-gradient(135deg, #FFF9F0 0%, #FBF6EC 100%);
+    border-radius: 24px;
+    padding: 40px;
+    border: 1px dashed var(--orange);
+  }
+  .sample-scene {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .sample-scene .badge {
+    display: inline-block;
+    background: var(--orange);
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 14px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .sample-scene h3 { font-size: 24px; font-weight: 800; color: var(--ink); }
+  .sample-cols {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+  }
+  .sample-col {
+    background: var(--white);
+    border-radius: 14px;
+    padding: 20px;
+  }
+  .sample-col h4 {
+    font-size: 13px;
+    color: var(--sage-deep);
+    font-weight: 700;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .word {
+    display: inline-block;
+    background: var(--cream-deep);
+    padding: 4px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin: 3px;
+    font-weight: 500;
+  }
+  .sentence {
+    font-size: 14px;
+    color: var(--ink);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sentence:last-child { border-bottom: none; }
+  .sentence .zh { display: block; font-size: 12px; color: var(--ink-soft); margin-top: 2px; }
+  .dialog-line {
+    font-size: 13px;
+    padding: 6px 0;
+  }
+  .dialog-line .who {
+    font-weight: 700;
+    color: var(--orange-deep);
+  }
+
+  /* ===== Value ===== */
+  .value-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  .value-card {
+    background: var(--white);
+    border-radius: 18px;
+    padding: 32px;
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+  }
+  .value-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 4px;
+    background: var(--sage);
+  }
+  .value-card.orange::before { background: var(--orange); }
+  .value-card .vicon { font-size: 32px; margin-bottom: 14px; }
+  .value-card h3 { font-size: 19px; font-weight: 700; margin-bottom: 12px; }
+  .value-card p { font-size: 14px; color: var(--ink-soft); line-height: 1.8; }
+
+  /* ===== Footer ===== */
+  footer {
+    background: var(--ink);
+    color: var(--cream);
+    padding: 48px 0;
+    text-align: center;
+  }
+  footer h3 {
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 10px;
+  }
+  footer .en {
+    color: var(--orange);
+    font-size: 16px;
+    margin-bottom: 16px;
+  }
+  footer p { font-size: 14px; color: rgba(251,246,236,0.6); }
+  footer .tagline-footer {
+    font-size: 18px;
+    color: var(--cream);
+    margin: 16px 0;
+    font-weight: 500;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 36px; }
+    .hero h1 .en { font-size: 20px; }
+    .hero .tagline { font-size: 18px; }
+    .problem-grid, .users-grid, .value-grid { grid-template-columns: 1fr; }
+    .solution-steps, .feature-grid, .sample-cols { grid-template-columns: 1fr 1fr; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); padding: 4px 0; }
+    .sec-head h2 { font-size: 24px; }
+    .solution-box, .flow-wrap, .sample-box { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Hero ===== -->
+<header class="hero">
+  <div class="wrap hero-inner">
+    <span class="hero-tag">TRAE AI 创造力大赛 · 创意提案</span>
+    <h1>家常英语<span class="en">HomeEnglish</span></h1>
+    <p class="tagline">把今天家里刚发生的事，变成孩子今天就能说的英语</p>
+    <p class="desc">
+      家长输入当天真实生活场景（吃黄瓜、刷牙、出门上学），AI 几分钟生成核心词汇、核心句子、三轮亲子对话，家长陪孩子完成"听 → 跟读 → 角色演练 → 现实使用"的完整闭环。让英语学习回到真实生活，而不是又一节需要打卡的课。
+    </p>
+    <div class="hero-meta">
+      <div class="item">
+        <div class="label">产品形态</div>
+        <div class="value">Web 应用</div>
+      </div>
+      <div class="item">
+        <div class="label">目标用户</div>
+        <div class="value">3-8 岁儿童家长</div>
+      </div>
+      <div class="item">
+        <div class="label">参赛赛道</div>
+        <div class="value">学习工作</div>
+      </div>
+      <div class="item">
+        <div class="label">核心技术</div>
+        <div class="value">AI 场景生成 + 语音</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ===== 01 Problem ===== -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">01 / PROBLEM</span>
+      <h2>我们发现了什么问题</h2>
+      <p class="sub">课本英语和生活脱节，孩子学完开不了口</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="icon">📚</div>
+        <h3>课本英语和生活脱节</h3>
+        <p>孩子学了 "apple / book"，可家里吃黄瓜、刷牙、出门上学时依然说不出一句完整的英语。学的和用的对不上。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">📱</div>
+        <h3>英语 App 课程固定</h3>
+        <p>市面上的英语启蒙 App 课程是预设的，无法把"今天刚发生的生活场景"立刻变成今天就能学的英语内容。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">😶</div>
+        <h3>家长不知道怎么开口</h3>
+        <p>很多家长想陪孩子说英语，但不知道该说什么、怎么组织句子、怎么引导孩子回应，最后只能放弃。</p>
+      </div>
+      <div class="problem-card">
+        <div class="icon">💧</div>
+        <h3>学完就忘</h3>
+        <p>没有真实场景绑定的英语，孩子学完很快忘记。真正能记住的英语，是和真实生活瞬间绑定的英语。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 02 Solution ===== -->
+<section style="background: var(--cream-deep);">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">02 / SOLUTION</span>
+      <h2>我们的解法</h2>
+      <p class="sub">把"家庭生活场景"实时转化为"可学可说的英语"</p>
+    </div>
+    <div class="solution-box">
+      <p class="solution-quote">
+        如果家长能把"刚发生的生活场景"丢给 AI，几分钟后就拿到可学、可说、可演练的英语内容——英语学习就能真正回到生活里。
+      </p>
+      <p style="font-size: 15px; color: var(--ink-soft); line-height: 1.9;">
+        家常英语是一个家庭场景英语学习 Web 应用。家长只需输入当天刚发生的生活场景（如"吃黄瓜""出门上学"），AI 自动生成核心词汇、核心句子、三轮亲子对话。家长和孩子一起完成"听一听 → 跟读 → 角色演练 → 现实使用"的完整闭环，把当天的真实生活变成当天就能用的英语。
+      </p>
+      <div class="solution-steps">
+        <div class="step">
+          <div class="num">1</div>
+          <h4>输入场景</h4>
+          <p>家长描述刚发生的生活瞬间</p>
+        </div>
+        <div class="step">
+          <div class="num">2</div>
+          <h4>AI 生成</h4>
+          <p>词汇 + 句子 + 对话自动生成</p>
+        </div>
+        <div class="step">
+          <div class="num">3</div>
+          <h4>亲子共学</h4>
+          <p>听、跟读、角色演练</p>
+        </div>
+        <div class="step">
+          <div class="num">4</div>
+          <h4>现实使用</h4>
+          <p>回到生活场景开口说</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 03 Users ===== -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">03 / USERS</span>
+      <h2>目标用户及痛点</h2>
+      <p class="sub">家长是操作者，孩子是被服务对象</p>
+    </div>
+    <div class="users-grid">
+      <div class="user-card">
+        <span class="role">主要操作者</span>
+        <h3>👨 妈妈 / 爸爸（家长）</h3>
+        <ul>
+          <li>想陪孩子学英语，但自己英语基础一般</li>
+          <li>不知道在不同生活场景里该说什么英语</li>
+          <li>买过英语启蒙课，但孩子学完在生活中用不上</li>
+          <li>每天有碎片时间陪孩子，但缺高质量内容</li>
+          <li>使用场景：生活瞬间发生后，打开产品输入场景</li>
+        </ul>
+      </div>
+      <div class="user-card">
+        <span class="role child">参与者</span>
+        <h3>👶 3-8 岁儿童</h3>
+        <ul>
+          <li>英语启蒙阶段，需要大量真实场景输入</li>
+          <li>记忆力强，但容易学完就忘</li>
+          <li>对和家长互动、玩游戏天然感兴趣</li>
+          <li>需要在真实生活里重复使用才能记住</li>
+          <li>使用场景：和家长一起听、跟读、角色演练</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 04 Flow ===== -->
+<section style="background: var(--cream-deep);">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">04 / FLOW</span>
+      <h2>核心使用流程</h2>
+      <p class="sub">从生活场景到开口说英语，一个完整闭环</p>
+    </div>
+    <div class="flow-wrap">
+      <div class="flow">
+        <div class="flow-node">
+          <div class="circle">🏠</div>
+          <h4>场景首页</h4>
+          <p>输入生活场景</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="circle">✨</div>
+          <h4>AI 生成</h4>
+          <p>词汇/句子/对话</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="circle">👂</div>
+          <h4>最小学习</h4>
+          <p>听一听 + 跟读</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="circle">🎭</div>
+          <h4>角色演练</h4>
+          <p>亲子三轮对话</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node">
+          <div class="circle">✅</div>
+          <h4>今日完成</h4>
+          <p>复习 + 现实使用</p>
+        </div>
+      </div>
+      <p style="text-align: center; margin-top: 28px; font-size: 14px; color: var(--ink-soft);">
+        家长进入首页 → 选择/输入生活场景 → AI 生成英语内容 → 家长判断孩子是否需先学 → 孩子完成最小学习 → 家长孩子完成三轮角色演练 → 展示今日完成与复习建议
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 05 Features ===== -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">05 / FEATURES</span>
+      <h2>核心功能模块</h2>
+      <p class="sub">六个模块组成完整学习闭环</p>
+    </div>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="icon">🏠</div>
+        <h3>场景首页</h3>
+        <p>临时场景输入框、推荐场景卡片、每日路线入口，家长快速开始</p>
+      </div>
+      <div class="feature-card orange">
+        <div class="icon">🗺️</div>
+        <h3>每日路线</h3>
+        <p>上学日生活节点（起床/刷牙/早餐/出门/上学），可保存为学习路线</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">✨</div>
+        <h3>场景生成</h3>
+        <p>AI 生成场景插画、核心词汇、核心句子、简短对话，含中英对照</p>
+      </div>
+      <div class="feature-card orange">
+        <div class="icon">📖</div>
+        <h3>最小学习</h3>
+        <p>播放示范音、跟读、完成识别/问答任务，图片辅助理解</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon">🎭</div>
+        <h3>角色演练</h3>
+        <p>家长孩子分角色，逐轮演练，播放示范、录音跟读，完成三轮对话</p>
+      </div>
+      <div class="feature-card orange">
+        <div class="icon">✅</div>
+        <h3>今日完成</h3>
+        <p>已学习/已练习/已使用状态、次日复习提示、七日迁移到真实生活建议</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 06 Sample ===== -->
+<section style="background: var(--cream-deep);">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">06 / SAMPLE</span>
+      <h2>样本内容演示</h2>
+      <p class="sub">以"吃黄瓜"为例，展示 AI 生成内容</p>
+    </div>
+    <div class="sample-box">
+      <div class="sample-scene">
+        <span class="badge">示例场景</span>
+        <h3>🥒 吃黄瓜 Eating Cucumber</h3>
+      </div>
+      <div class="sample-cols">
+        <div class="sample-col">
+          <h4>核心词汇</h4>
+          <span class="word">cucumber</span>
+          <span class="word">eating</span>
+          <span class="word">crunchy</span>
+          <span class="word">like</span>
+        </div>
+        <div class="sample-col">
+          <h4>核心句子</h4>
+          <div class="sentence">What are you eating?<span class="zh">你在吃什么？</span></div>
+          <div class="sentence">I'm eating a cucumber.<span class="zh">我在吃黄瓜。</span></div>
+          <div class="sentence">Is it crunchy?<span class="zh">脆吗？</span></div>
+          <div class="sentence">Yes, I like it.<span class="zh">是的，我喜欢。</span></div>
+        </div>
+        <div class="sample-col">
+          <h4>三轮对话</h4>
+          <div class="dialog-line"><span class="who">家长：</span>What are you eating?</div>
+          <div class="dialog-line"><span class="who">孩子：</span>I'm eating a cucumber.</div>
+          <div class="dialog-line"><span class="who">家长：</span>Is it crunchy?</div>
+          <div class="dialog-line"><span class="who">孩子：</span>Yes, it is!</div>
+          <div class="dialog-line"><span class="who">家长：</span>Do you like it?</div>
+          <div class="dialog-line"><span class="who">孩子：</span>Yes, I do!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 07 Value ===== -->
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="sec-num">07 / VALUE</span>
+      <h2>价值与意义</h2>
+      <p class="sub">让亲子英语对话成为每天几分钟的小事</p>
+    </div>
+    <div class="value-grid">
+      <div class="value-card">
+        <div class="vicon">⚡</div>
+        <h3>效率提升</h3>
+        <p>
+          把"家庭生活场景"到"可学可说的英语内容"的转化时间，从数小时（家长自己查资料、组织语言）压缩到几分钟（AI 自动生成）。即使家长英语基础一般，也能高质量陪孩子学英语、说英语，让"亲子英语对话"这件高门槛的事变成每天几分钟就能完成的小事。
+        </p>
+      </div>
+      <div class="value-card orange">
+        <div class="vicon">🌱</div>
+        <h3>社会价值</h3>
+        <p>
+          降低家庭英语启蒙的门槛，让英语学习从"屏幕里的固定课程"回到"真实的生活对话"。帮助更多家庭建立亲子英语对话习惯，让英语真正成为家庭生活的一部分，而不是又一节需要"打卡"的课。让每个普通家庭都能轻松拥有高质量的亲子英语时光。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="wrap">
+    <h3>家常英语</h3>
+    <p class="en">HomeEnglish</p>
+    <p class="tagline-footer">把生活变成英语，把英语变成生活</p>
+    <p>TRAE AI 创造力大赛 · 创意提案 · 学习工作赛道</p>
+  </div>
+</footer>
+
+</body>
+</html>

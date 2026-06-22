@@ -156,7 +156,7 @@ export default function Practice() {
         {/* 演练准备：重点词汇速览 */}
         {round === 0 && vocab.length > 0 && (
           <Card className="mb-6 border-primary/15 bg-sage-soft/20 animate-fade-up" style={{ animationDelay: '0.08s' }}>
-            <CardContent className="p-5">
+            <CardContent className="p-4 sm:p-5">
               <div className="mb-3 flex items-center gap-2">
                 <BookOpen className="h-4 w-4 text-primary" />
                 <span className="font-display text-sm font-bold">演练前速览：本场景重点词汇</span>
@@ -182,7 +182,7 @@ export default function Practice() {
 
         {/* 本轮重点提示 */}
         {roundKeywords.length > 0 && (
-          <div className="mb-4 flex items-center gap-2 rounded-2xl bg-peach-soft/30 px-4 py-2.5 text-sm animate-fade-up" style={{ animationDelay: '0.1s' }}>
+          <div className="mb-4 flex flex-wrap items-center gap-2 rounded-2xl bg-peach-soft/30 px-4 py-2.5 text-sm animate-fade-up" style={{ animationDelay: '0.1s' }}>
             <Target className="h-4 w-4 shrink-0 text-accent-foreground/70" />
             <span className="text-muted-foreground">本轮重点：</span>
             {roundKeywords.map((v, i) => (
@@ -195,7 +195,7 @@ export default function Practice() {
 
         {/* 对话舞台 */}
         <Card className="overflow-hidden border-primary/20 shadow-soft-lg animate-fade-up" style={{ animationDelay: '0.12s' }}>
-          <CardContent className="p-4 sm:p-6 sm:p-8">
+          <CardContent className="p-4 sm:p-6 md:p-8">
             {/* 轮次标记 */}
             <div className="mb-4 flex items-center justify-center gap-2">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">

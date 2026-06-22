@@ -33,11 +33,6 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
     return questions.filter((q) => answers[q.id] === q.correctId).length;
   }, [questions, answers]);
 
-  const handleAnswer = useCallback((questionId: string, optionId: string) => {
-    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
-    setShowResult((prev) => ({ ...prev, [questionId]: true }));
-  }, []);
-
   const handleNext = useCallback(() => {
     if (currentIdx < total - 1) {
       setCurrentIdx((i) => i + 1);
@@ -46,6 +41,19 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
       onComplete(correctCount, total);
     }
   }, [currentIdx, total, correctCount, onComplete]);
+
+  // 答对后自动进入下一题（答错保持手动，让用户先看正确答案）
+  const handleAnswer = useCallback((questionId: string, optionId: string) => {
+    setAnswers((prev) => ({ ...prev, [questionId]: optionId }));
+    setShowResult((prev) => ({ ...prev, [questionId]: true }));
+    // 判断是否答对，答对则 1 秒后自动进入下一题
+    const question = questions.find((q) => q.id === questionId);
+    if (question && optionId === question.correctId) {
+      setTimeout(() => {
+        handleNext();
+      }, 1000);
+    }
+  }, [questions, handleNext]);
 
   const handleRestart = useCallback(() => {
     setAnswers({});
@@ -75,7 +83,7 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
     const isGood = percentage >= 60;
     return (
       <Card className="border-primary/20">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col items-center gap-4 py-6 text-center">
             <span className={cn(
               'grid h-20 w-20 place-items-center rounded-3xl text-4xl',
@@ -168,7 +176,7 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
         <div className="mb-5">
           {(current.type === 'listen_word' || current.type === 'listen_sentence') && (
             // 听题类型：先听再看词
-            <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-5">
+            <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">{current.prompt}</p>
               <div className="flex items-center gap-3">
                 <span className="text-xs text-muted-foreground">听到的是：</span>
@@ -192,7 +200,7 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
 
           {(current.type === 'zh_to_en_word' || current.type === 'zh_to_en_sentence') && (
             // 看题类型：显示中文
-            <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-5">
+            <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-4 sm:p-5">
               <p className="text-sm text-muted-foreground">{current.prompt}</p>
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground">中文：</span>
@@ -251,11 +259,10 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
           )}
         </div>
 
-        {/* 选项区（仅选择题类型显示） */}
+        {/* 选项区（仅选择题类型显示，listen_pick 已在组件内部显示选项） */}
         {(current.type === 'listen_word' || current.type === 'listen_sentence'
-          || current.type === 'zh_to_en_word' || current.type === 'zh_to_en_sentence'
-          || current.type === 'listen_pick') && (
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+          || current.type === 'zh_to_en_word' || current.type === 'zh_to_en_sentence') && (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
             {current.options.map((opt) => {
               const selected = currentAnswer === opt.id;
               const correct = opt.isCorrect;
@@ -265,7 +272,7 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
                   disabled={currentShowResult}
                   onClick={() => handleAnswer(current.id, opt.id)}
                   className={cn(
-                    'flex flex-col items-center gap-1 rounded-2xl border-2 p-4 transition-all',
+                    'flex flex-col items-center gap-1 rounded-xl border-2 p-2.5 transition-all sm:rounded-2xl sm:p-4',
                     !currentShowResult && 'hover:border-primary/40 hover:bg-sage-soft/30',
                     currentShowResult && userCorrect && correct && 'border-primary bg-sage-soft/50',
                     currentShowResult && !userCorrect && selected && 'border-destructive/40 bg-destructive/5',
@@ -274,8 +281,8 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
                     !currentShowResult && 'border-border bg-card',
                   )}
                 >
-                  <span className="text-2xl">💡</span>
-                  <span className="font-display font-bold text-center">{opt.text}</span>
+                  <span className="text-xl sm:text-2xl">💡</span>
+                  <span className="font-display text-xs font-bold text-center sm:text-sm sm:font-bold">{opt.text}</span>
                   {currentShowResult && userCorrect && correct && (
                     <span className="flex items-center gap-1 text-xs font-semibold text-primary">
                       <Check className="h-3 w-3" /> 答对了
@@ -348,7 +355,7 @@ function FillBlankQuestion({
   onAnswer: (optId: string) => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-5">
+    <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-4 sm:p-5">
       <p className="text-sm text-muted-foreground">{question.prompt}</p>
       <div className="flex items-center gap-3">
         <SpeakButton
@@ -368,7 +375,7 @@ function FillBlankQuestion({
           <p className="mt-1 text-xs text-primary">{question.blankHint}</p>
         </div>
       )}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
         {question.options.map((opt) => {
           const isSelected = selected === opt.id;
           const correct = opt.isCorrect;
@@ -430,7 +437,7 @@ function WordOrderQuestion({
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 rounded-2xl bg-sage-soft/30 p-5">
+    <div className="flex flex-col items-center gap-4 rounded-2xl bg-sage-soft/30 p-4 sm:p-5">
       <p className="text-sm text-muted-foreground">{question.prompt}</p>
       <div className="text-center">
         <p className="text-xs text-muted-foreground">中文：</p>
@@ -504,7 +511,7 @@ function ListenPickQuestion({
   onAnswer: (optId: string) => void;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-5">
+    <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-4 sm:p-5">
       <p className="text-sm text-muted-foreground">{question.prompt}</p>
       <div className="flex items-center gap-3">
         <SpeakButton
@@ -518,7 +525,7 @@ function ListenPickQuestion({
       {hasPlayed && (
         <p className="text-xs text-muted-foreground">中文释义：{question.displayZh}</p>
       )}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
         {question.options.map((opt) => {
           const isSelected = selected === opt.id;
           const correct = opt.isCorrect;
@@ -582,7 +589,7 @@ function SpellWordQuestion({
   const correctAnswer = blanks.map((i) => fullWord[i]).join('');
 
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-5">
+    <div className="flex flex-col items-center gap-3 rounded-2xl bg-sage-soft/30 p-4 sm:p-5">
       <p className="text-sm text-muted-foreground">{question.prompt}</p>
       <div className="flex items-center gap-3">
         <SpeakButton

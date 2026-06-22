@@ -109,25 +109,26 @@ export default function Profile() {
         {/* 用户信息卡 */}
         <Card className="overflow-hidden border-primary/20 shadow-soft-lg animate-fade-up">
           <CardContent className="p-4 sm:p-8">
-            <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex items-center gap-4">
-                <span className="grid h-16 w-16 sm:h-20 sm:w-20 place-items-center rounded-3xl bg-gradient-to-br from-sage-soft to-peach-soft text-4xl sm:text-5xl">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <span className="grid h-14 w-14 shrink-0 place-items-center rounded-3xl bg-gradient-to-br from-sage-soft to-peach-soft text-3xl sm:h-20 sm:w-20 sm:text-5xl">
                   {currentUser.avatar}
                 </span>
-                <div>
-                  <h1 className="font-display text-xl font-bold sm:text-2xl">{currentUser.nickname}</h1>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                <div className="min-w-0 flex-1">
+                  <h1 className="font-display text-lg font-bold sm:text-2xl">{currentUser.nickname}</h1>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground sm:mt-1 sm:text-sm">
                     @{currentUser.username} · {currentUser.email}
                   </p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <Badge variant="sage" className="gap-1">
-                      <span className="text-base">{currentLevel.badge}</span>
-                      Lv.{currentLevel.level} {currentLevel.title}
+                  {/* 等级 + 权限方案：移动端紧凑横排不换行 */}
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:gap-2">
+                    <Badge variant="sage" className="gap-1 text-[10px] sm:text-xs">
+                      <span className="text-xs sm:text-base">{currentLevel.badge}</span>
+                      <span className="whitespace-nowrap">Lv.{currentLevel.level} {currentLevel.title}</span>
                     </Badge>
                     <button
                       onClick={() => navigate('/upgrade')}
                       className={cn(
-                        'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors',
+                        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold transition-colors sm:px-2.5 sm:text-xs',
                         tierInfo.tier === 'pro'
                           ? 'border-purple-300 bg-purple-50 text-purple-700 hover:bg-purple-100'
                           : tierInfo.tier === 'plus'
@@ -136,27 +137,31 @@ export default function Profile() {
                       )}
                     >
                       <span>{getTierBadge(tierInfo.tier)}</span>
-                      {getTierName(tierInfo.tier)}
+                      <span className="whitespace-nowrap">{getTierName(tierInfo.tier)}</span>
                       {tierInfo.tier !== 'free' && (
-                        <ChevronRight className="h-3 w-3" />
+                        <ChevronRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                       )}
                     </button>
                     {tierInfo.tier === 'free' && (
                       <button
                         onClick={() => navigate('/upgrade')}
-                        className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-0.5 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-100"
+                        className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700 transition-colors hover:bg-amber-100 sm:px-2.5 sm:text-xs"
                       >
-                        <Crown className="h-3 w-3" />
-                        升级解锁更多
+                        <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                        <span className="whitespace-nowrap">升级解锁</span>
                       </button>
                     )}
                   </div>
                 </div>
               </div>
-              <Button variant="outline" size="sm" onClick={handleLogout} className="gap-1.5">
-                <LogOut className="h-4 w-4" />
-                退出登录
-              </Button>
+              {/* 退出登录：与权限方案按钮同等大小，靠右对齐 */}
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1 self-end rounded-full border-2 border-border bg-card/70 px-2 py-0.5 text-[10px] font-semibold text-foreground transition-colors hover:bg-secondary hover:border-primary/40 sm:self-auto sm:px-2.5 sm:text-xs"
+              >
+                <LogOut className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <span className="whitespace-nowrap">退出登录</span>
+              </button>
             </div>
           </CardContent>
         </Card>
@@ -183,7 +188,7 @@ export default function Profile() {
             </span>
             <div className="flex-1">
               <p className="font-display text-sm font-bold">{getTierName(tierInfo.tier)}</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-[11px] sm:text-sm text-muted-foreground">
                 {tierInfo.tier === 'free' ? '升级解锁更多权益' : '查看/管理订阅'}
               </p>
             </div>
@@ -205,7 +210,7 @@ export default function Profile() {
             </span>
             <div className="flex-1">
               <p className="font-display text-sm font-bold">积分兑换</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-[11px] sm:text-sm text-muted-foreground">
                 {tierInfo.tier === 'pro' ? '用星星换奖励' : 'Pro 专属'}
               </p>
             </div>
@@ -222,7 +227,7 @@ export default function Profile() {
             </span>
             <div className="flex-1">
               <p className="font-display text-sm font-bold">学习中心</p>
-              <p className="text-[11px] text-muted-foreground">单词·口语·写作·测验</p>
+              <p className="text-[11px] sm:text-sm text-muted-foreground">单词·口语·写作·测验</p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
           </button>
@@ -237,7 +242,7 @@ export default function Profile() {
             </span>
             <div className="flex-1">
               <p className="font-display text-sm font-bold">每日路线</p>
-              <p className="text-[11px] text-muted-foreground">把英语嵌入一天</p>
+              <p className="text-[11px] sm:text-sm text-muted-foreground">把英语嵌入一天</p>
             </div>
             <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
           </button>
@@ -269,60 +274,60 @@ export default function Profile() {
           </Card>
         )}
 
-        {/* 积分 + 等级概览 */}
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 animate-fade-up" style={{ animationDelay: '0.08s' }}>
+        {/* 积分 + 等级概览：移动端 3 列横排，避免第三个换行 */}
+        <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-5 animate-fade-up" style={{ animationDelay: '0.08s' }}>
           {/* 总星数 */}
           <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-amber-700">
-                <Star className="h-5 w-5 fill-amber-400 text-amber-500" />
-                <span className="text-sm font-semibold">总星数</span>
+            <CardContent className="p-2.5 sm:p-6">
+              <div className="flex items-center gap-1 text-amber-700 sm:gap-2">
+                <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500 sm:h-5 sm:w-5" />
+                <span className="text-[10px] font-semibold sm:text-sm">总星数</span>
               </div>
-              <p className="mt-2 font-display text-3xl font-bold text-amber-700 sm:text-4xl">
+              <p className="mt-1.5 font-display text-xl font-bold text-amber-700 sm:mt-2 sm:text-3xl sm:font-bold">
                 {totalStars}
-                <span className="ml-1 text-lg text-amber-500">⭐</span>
+                <span className="ml-0.5 text-sm text-amber-500 sm:ml-1 sm:text-lg">⭐</span>
               </p>
-              <p className="mt-1 text-xs text-amber-600/70">
-                共完成 {records.length} 个场景
+              <p className="mt-0.5 text-[9px] text-amber-600/70 sm:mt-1 sm:text-xs">
+                共 {records.length} 场景
               </p>
             </CardContent>
           </Card>
 
           {/* 当前等级 */}
           <Card className="border-primary/20 bg-gradient-to-br from-sage-soft/40 to-peach-soft/30">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-primary">
-                <Award className="h-5 w-5" />
-                <span className="text-sm font-semibold">当前等级</span>
+            <CardContent className="p-2.5 sm:p-6">
+              <div className="flex items-center gap-1 text-primary sm:gap-2">
+                <Award className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
+                <span className="text-[10px] font-semibold sm:text-sm">当前等级</span>
               </div>
-              <p className="mt-2 font-display text-2xl font-bold sm:text-3xl">
-                <span className="mr-1">{currentLevel.badge}</span>
+              <p className="mt-1.5 font-display text-lg font-bold sm:mt-2 sm:text-2xl sm:font-bold">
+                <span className="mr-0.5 text-base sm:mr-1">{currentLevel.badge}</span>
                 Lv.{currentLevel.level}
               </p>
-              <p className="mt-1 text-xs text-muted-foreground">{currentLevel.title}</p>
+              <p className="mt-0.5 truncate text-[9px] text-muted-foreground sm:mt-1 sm:text-xs">{currentLevel.title}</p>
             </CardContent>
           </Card>
 
           {/* 距离下一级 */}
           <Card className={cn(nextLevel ? 'border-purple-200 bg-purple-50/50' : 'border-border bg-card')}>
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-purple-700">
-                <TrendingUp className="h-5 w-5" />
-                <span className="text-sm font-semibold">{nextLevel ? '距离下一级' : '已满级'}</span>
+            <CardContent className="p-2.5 sm:p-6">
+              <div className="flex items-center gap-1 text-purple-700 sm:gap-2">
+                <TrendingUp className="h-3.5 w-3.5 sm:h-5 sm:w-5" />
+                <span className="text-[10px] font-semibold sm:text-sm">{nextLevel ? '下一级' : '已满级'}</span>
               </div>
               {nextLevel ? (
                 <>
-                  <p className="mt-2 font-display text-2xl font-bold sm:text-3xl text-purple-700">
+                  <p className="mt-1.5 font-display text-lg font-bold text-purple-700 sm:mt-2 sm:text-2xl sm:font-bold">
                     {remainStars}
-                    <span className="ml-1 text-base text-purple-500">⭐</span>
+                    <span className="ml-0.5 text-sm text-purple-500 sm:ml-1 sm:text-base">⭐</span>
                   </p>
-                  <p className="mt-1 text-xs text-purple-600/70">
-                    即将解锁「{nextLevel.title}」{nextLevel.badge}
+                  <p className="mt-0.5 truncate text-[9px] text-purple-600/70 sm:mt-1 sm:text-xs">
+                    解锁{nextLevel.title}
                   </p>
                 </>
               ) : (
-                <p className="mt-2 font-display text-2xl font-bold text-purple-700">
-                  已达最高等级 💎
+                <p className="mt-1.5 font-display text-base font-bold text-purple-700 sm:mt-2 sm:text-2xl sm:font-bold">
+                  已满级 💎
                 </p>
               )}
             </CardContent>
@@ -366,11 +371,11 @@ export default function Profile() {
             <div className="mb-4 flex items-center gap-2">
               <Award className="h-4 w-4 text-primary" />
               <h3 className="font-display font-bold">勋章墙</h3>
-              <Badge variant="muted" className="text-[10px]">
+              <Badge variant="muted" className="text-[10px] sm:text-xs">
                 {currentLevel.level}/{LEVELS.length} 已解锁
               </Badge>
             </div>
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-10 sm:gap-3">
+            <div className="grid grid-cols-5 gap-2 sm:grid-cols-10 sm:gap-3">
               {LEVELS.map((lv) => {
                 const unlocked = totalStars >= lv.minStars;
                 const isCurrent = lv.level === currentLevel.level;
@@ -378,7 +383,7 @@ export default function Profile() {
                   <div
                     key={lv.level}
                     className={cn(
-                      'flex flex-col items-center gap-1 rounded-2xl border p-2 text-center transition-all',
+                      'flex flex-col items-center gap-1 rounded-2xl border p-2 sm:p-2.5 text-center transition-all',
                       isCurrent && 'border-primary bg-primary/5 shadow-soft',
                       unlocked && !isCurrent && 'border-sage/30 bg-sage-soft/20',
                       !unlocked && 'border-border bg-muted/30 opacity-40',
@@ -386,7 +391,7 @@ export default function Profile() {
                     title={unlocked ? `${lv.title}（${lv.minStars}⭐）` : `需 ${lv.minStars}⭐ 解锁`}
                   >
                     <span className={cn('text-2xl', !unlocked && 'grayscale')}>{lv.badge}</span>
-                    <span className="text-[10px] font-semibold">Lv.{lv.level}</span>
+                    <span className="text-[10px] sm:text-xs font-semibold">Lv.{lv.level}</span>
                   </div>
                 );
               })}
@@ -396,13 +401,13 @@ export default function Profile() {
 
         {/* 积分记录 */}
         <Card className="mt-4 animate-fade-up" style={{ animationDelay: '0.2s' }}>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-500" />
                 <h3 className="font-display font-bold">积分记录</h3>
               </div>
-              <Badge variant="muted" className="text-[10px]">
+              <Badge variant="muted" className="text-[10px] sm:text-xs">
                 共 {records.length} 条
               </Badge>
             </div>
@@ -432,7 +437,7 @@ export default function Profile() {
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <h4 className="truncate font-semibold">{r.sceneNameZh}</h4>
-                        <Badge variant="muted" className="shrink-0 text-[10px]">
+                        <Badge variant="muted" className="shrink-0 text-[10px] sm:text-xs">
                           {r.difficulty === 'easy' ? '简单' : r.difficulty === 'medium' ? '难度' : '复杂'}
                         </Badge>
                       </div>
@@ -455,7 +460,7 @@ export default function Profile() {
 
         {/* 我的学习历史 */}
         <Card className="mt-4 animate-fade-up" style={{ animationDelay: '0.24s' }}>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <HistoryIcon className="h-4 w-4 text-primary" />
@@ -495,7 +500,7 @@ export default function Profile() {
                         {e.practiceDone ? '已完成演练' : e.learnedDone ? '已学完，待演练' : '未完成学习'} · {formatFullTime(e.createdAt)}
                       </p>
                     </div>
-                    <Badge variant="muted" className="shrink-0 text-[10px]">
+                    <Badge variant="muted" className="shrink-0 text-[10px] sm:text-xs">
                       {e.difficulty === 'easy' ? '简单' : e.difficulty === 'medium' ? '难度' : '复杂'}
                     </Badge>
                   </div>
@@ -507,7 +512,7 @@ export default function Profile() {
 
         {/* 积分规则说明 */}
         <Card className="mt-4 border-peach/30 bg-peach-soft/20 animate-fade-up" style={{ animationDelay: '0.28s' }}>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <div className="mb-2 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-accent-foreground" />
             <h3 className="font-display font-bold">积分规则</h3>

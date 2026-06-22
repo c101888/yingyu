@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useUserStore } from '@/store/useUserStore';
 import { useTierStore } from '@/store/useTierStore';
-import { api, checkBackend } from '@/lib/api';
+import { api, checkBackend, isAuthError } from '@/lib/api';
 import { TIER_CONFIGS, TIER_ORDER, formatPrice, yearlyPerMonth, yearlyDiscount } from '@/lib/tiers';
 import type { Tier } from '@/lib/tiers';
 import { cn } from '@/lib/utils';
@@ -49,6 +49,7 @@ export default function Upgrade() {
       await tierInfo.refresh();
       setSuccess(`恭喜！已升级为 ${TIER_CONFIGS[targetTier].nameZh}，有效期 365 天`);
     } catch (err) {
+      if (isAuthError(err)) return; // 登录已过期，静默处理
       setError(err instanceof Error ? err.message : '升级失败');
     } finally {
       setUpgrading(null);
@@ -113,7 +114,7 @@ export default function Upgrade() {
               )}
             >
               按年付费
-              <span className="ml-1.5 rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] text-white">
+              <span className="ml-1.5 rounded-full bg-amber-400 px-1.5 py-0.5 text-[10px] sm:text-xs text-white">
                 省 26%
               </span>
             </button>
@@ -121,7 +122,7 @@ export default function Upgrade() {
         </div>
 
         {/* 三档定价卡 */}
-        <div className="grid gap-5 md:grid-cols-3 animate-fade-up" style={{ animationDelay: '0.1s' }}>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 md:gap-5 animate-fade-up" style={{ animationDelay: '0.1s' }}>
           {TIER_ORDER.map((tierKey) => {
             const cfg = TIER_CONFIGS[tierKey];
             const isCurrent = currentTier === tierKey;
@@ -140,40 +141,40 @@ export default function Upgrade() {
               >
                 {cfg.highlight && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                    <Badge className="gap-1 bg-primary text-primary-foreground">
-                      <Star className="h-3 w-3 fill-current" /> 最受欢迎
+                    <Badge className="gap-1 bg-primary text-primary-foreground text-[9px] sm:text-xs">
+                      <Star className="h-2.5 w-2.5 fill-current sm:h-3 sm:w-3" /> <span className="hidden sm:inline">最受欢迎</span><span className="sm:hidden">热门</span>
                     </Badge>
                   </div>
                 )}
                 {tierKey === 'pro' && (
-                  <div className="absolute -top-3 right-3">
-                    <Badge variant="peach" className="gap-1">
-                      <Crown className="h-3 w-3" /> 最佳价值
+                  <div className="absolute -top-3 right-2 sm:right-3">
+                    <Badge variant="peach" className="gap-1 text-[9px] sm:text-xs">
+                      <Crown className="h-2.5 w-2.5 sm:h-3 sm:w-3" /> <span className="hidden sm:inline">最佳价值</span><span className="sm:hidden">超值</span>
                     </Badge>
                   </div>
                 )}
-                <CardContent className="flex flex-1 flex-col p-5 sm:p-6">
+                <CardContent className="flex flex-1 flex-col p-2.5 sm:p-5 md:p-6">
                   {/* 头部 */}
-                  <div className="mb-4">
-                    <div className="flex items-center gap-2">
-                      <span className="text-3xl">{cfg.badge}</span>
-                      <h3 className="font-display text-2xl font-bold">{cfg.nameZh}</h3>
+                  <div className="mb-2 sm:mb-4">
+                    <div className="flex items-center gap-1 sm:gap-2">
+                      <span className="text-xl sm:text-3xl">{cfg.badge}</span>
+                      <h3 className="font-display text-sm font-bold sm:text-2xl">{cfg.nameZh}</h3>
                     </div>
-                    <p className="mt-1 text-sm text-muted-foreground">{cfg.nameEn}</p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground sm:mt-1 sm:text-sm">{cfg.nameEn}</p>
                   </div>
 
                   {/* 价格 */}
-                  <div className="mb-5">
+                  <div className="mb-3 sm:mb-5">
                     {price === 0 ? (
-                      <p className="font-display text-3xl font-bold sm:text-4xl text-gray-700">免费</p>
+                      <p className="font-display text-lg font-bold sm:text-3xl sm:font-bold text-gray-700">免费</p>
                     ) : (
                       <>
-                        <div className="flex items-baseline gap-1">
-                          <span className="font-display text-3xl font-bold sm:text-4xl">{formatPrice(price)}</span>
-                          <span className="text-sm text-muted-foreground">/{billing === 'yearly' ? '年' : '月'}</span>
+                        <div className="flex items-baseline gap-0.5 sm:gap-1">
+                          <span className="font-display text-lg font-bold sm:text-3xl sm:font-bold">{formatPrice(price)}</span>
+                          <span className="text-[10px] text-muted-foreground sm:text-sm">/{billing === 'yearly' ? '年' : '月'}</span>
                         </div>
                         {billing === 'yearly' && (
-                          <p className="mt-1 text-xs text-amber-600">
+                          <p className="mt-0.5 text-[10px] text-amber-600 sm:mt-1 sm:text-xs">
                             约 {yearlyPerMonth(cfg.priceYearly)}/月 · 省 {discount}%
                           </p>
                         )}
@@ -182,10 +183,10 @@ export default function Upgrade() {
                   </div>
 
                   {/* 权益列表 */}
-                  <ul className="mb-6 flex-1 space-y-2.5">
+                  <ul className="mb-4 flex-1 space-y-1.5 sm:mb-6 sm:space-y-2.5">
                     {cfg.benefits.map((b, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm">
-                        <Check className={cn('mt-0.5 h-4 w-4 shrink-0', cfg.color)} />
+                      <li key={i} className="flex items-start gap-1 text-[10px] sm:gap-2 sm:text-sm">
+                        <Check className={cn('mt-0.5 h-2.5 w-2.5 shrink-0 sm:h-4 sm:w-4', cfg.color)} />
                         <span className="text-foreground/90">{b}</span>
                       </li>
                     ))}
@@ -193,27 +194,28 @@ export default function Upgrade() {
 
                   {/* 按钮 */}
                   {isCurrent ? (
-                    <Button variant="outline" disabled className="w-full">
+                    <Button variant="outline" disabled className="w-full h-8 text-[10px] sm:h-10 sm:text-sm">
                       当前方案
                     </Button>
                   ) : tierKey === 'free' ? (
-                    <Button variant="outline" className="w-full" onClick={() => navigate('/')}>
+                    <Button variant="outline" className="w-full h-8 text-[10px] sm:h-10 sm:text-sm" onClick={() => navigate('/')}>
                       开始使用
                     </Button>
                   ) : (
                     <Button
                       variant={cfg.highlight ? 'default' : 'soft'}
-                      className="w-full gap-1.5"
+                      className="w-full gap-1 h-8 text-[10px] sm:h-10 sm:gap-1.5 sm:text-sm"
                       onClick={() => handleUpgrade(tierKey)}
                       disabled={upgrading !== null}
                     >
                       {upgrading === tierKey ? (
-                        <><Loader2 className="h-4 w-4 animate-spin" /> 升级中…</>
+                        <><Loader2 className="h-3 w-3 animate-spin sm:h-4 sm:w-4" /> <span className="sm:hidden">中…</span><span className="hidden sm:inline">升级中…</span></>
                       ) : (
                         <>
-                          {tierKey === 'pro' && <Crown className="h-4 w-4" />}
-                          {tierKey === 'plus' && <Zap className="h-4 w-4" />}
-                          升级到 {cfg.nameZh}
+                          {tierKey === 'pro' && <Crown className="h-3 w-3 sm:h-4 sm:w-4" />}
+                          {tierKey === 'plus' && <Zap className="h-3 w-3 sm:h-4 sm:w-4" />}
+                          <span className="sm:hidden">升级</span>
+                          <span className="hidden sm:inline">升级到 {cfg.nameZh}</span>
                         </>
                       )}
                     </Button>

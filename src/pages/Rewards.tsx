@@ -25,7 +25,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useUserStore } from '@/store/useUserStore';
-import { api } from '@/lib/api';
+import { api, isAuthError } from '@/lib/api';
 import {
   getLevelByStars,
   getNextLevel,
@@ -122,6 +122,7 @@ export default function Rewards() {
       setCanRedeem(rewardsRes.canRedeem);
       setRedemptions(redemptionsRes.redemptions);
     } catch (err) {
+      if (isAuthError(err)) return; // 登录已过期，静默处理
       showToast('error', err instanceof Error ? err.message : '加载失败');
     } finally {
       setLoading(false);
@@ -147,6 +148,7 @@ export default function Rewards() {
       // 刷新奖励数据 + 用户信息
       await Promise.all([loadData(), refreshMe()]);
     } catch (err) {
+      if (isAuthError(err)) return; // 登录已过期，静默处理
       showToast('error', err instanceof Error ? err.message : '兑换失败');
     } finally {
       setRedeemingId(null);
@@ -211,6 +213,7 @@ export default function Rewards() {
       setForm(EMPTY_FORM);
       await loadData();
     } catch (err) {
+      if (isAuthError(err)) return; // 登录已过期，静默处理
       showToast('error', err instanceof Error ? err.message : '保存失败');
     } finally {
       setSaving(false);
@@ -226,6 +229,7 @@ export default function Rewards() {
       showToast('success', '奖励已删除');
       await loadData();
     } catch (err) {
+      if (isAuthError(err)) return; // 登录已过期，静默处理
       showToast('error', err instanceof Error ? err.message : '删除失败');
     } finally {
       setDeletingId(null);
@@ -248,7 +252,7 @@ export default function Rewards() {
           </Button>
 
           <Card className="overflow-hidden border-primary/20 shadow-soft-lg animate-fade-up">
-            <CardContent className="p-6 text-center sm:p-12">
+            <CardContent className="p-5 text-center sm:p-8">
               <span className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-gradient-to-br from-purple-100 to-pink-100 text-5xl">
                 👑
               </span>
@@ -260,7 +264,7 @@ export default function Rewards() {
                 用学习攒下的星星兑换真实奖励，让孩子更有动力坚持每日英语练习。这是 Pro 会员专属功能。
               </p>
 
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
                 {[
                   { icon: '🎁', title: '自定义奖励', desc: '家长可设置专属奖励' },
                   { icon: '⭐', title: '星星兑换', desc: '用积分兑换心仪奖励' },
@@ -306,7 +310,7 @@ export default function Rewards() {
         </div>
 
         {/* 顶部：总星数 + 等级信息 */}
-        <div className="grid gap-4 sm:grid-cols-3 animate-fade-up" style={{ animationDelay: '0.06s' }}>
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 animate-fade-up" style={{ animationDelay: '0.06s' }}>
           {/* 总星数 */}
           <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
             <CardContent className="p-5">
@@ -408,7 +412,7 @@ export default function Rewards() {
               <Gift className="h-5 w-5 text-primary" />
               <h2 className="font-display text-xl font-bold">奖励列表</h2>
             </div>
-            <Badge variant="muted" className="text-[10px]">
+            <Badge variant="muted" className="text-[10px] sm:text-xs">
               共 {rewards.length} 项
             </Badge>
           </div>
@@ -430,7 +434,7 @@ export default function Rewards() {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3">
               {rewards.map((reward) => {
                 const canAfford = totalStars >= reward.starCost;
                 const need = reward.starCost - totalStars;
@@ -446,7 +450,7 @@ export default function Rewards() {
                         </span>
                         <div className="flex items-center gap-1.5">
                           {reward.isPreset && (
-                            <Badge variant="sage" className="text-[10px]">预设</Badge>
+                            <Badge variant="sage" className="text-[10px] sm:text-xs">预设</Badge>
                           )}
                           {manageOpen && (
                             <>
@@ -517,7 +521,7 @@ export default function Rewards() {
 
         {/* 家长管理区（可折叠） */}
         <Card className="mt-8 animate-fade-up" style={{ animationDelay: '0.18s' }}>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <button
               onClick={() => setManageOpen((v) => !v)}
               className="flex w-full items-center justify-between"
@@ -661,13 +665,13 @@ export default function Rewards() {
 
         {/* 兑换历史 */}
         <Card className="mt-4 animate-fade-up" style={{ animationDelay: '0.22s' }}>
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             <div className="mb-4 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <HistoryIcon className="h-4 w-4 text-primary" />
                 <h3 className="font-display font-bold">兑换历史</h3>
               </div>
-              <Badge variant="muted" className="text-[10px]">
+              <Badge variant="muted" className="text-[10px] sm:text-xs">
                 共 {redemptions.length} 条
               </Badge>
             </div>

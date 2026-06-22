@@ -147,6 +147,7 @@ export default function Learn() {
                   </div>
                   <div className="flex gap-1.5">
                     <SpeakButton text={s.en} variant="soft" size="icon" className="h-10 w-10" />
+                    <SpeakButton text={s.en} rate={0.5} variant="ghost" size="sm" label="慢速" className="h-10 px-2 text-xs" />
                     <RepeatButton
                       text={s.en}
                       size="icon"
@@ -203,11 +204,11 @@ export default function Learn() {
               ? '太棒了！准备好和孩子一起演练了吗？'
               : '完成听读和小任务后，就可以进入演练了'}
           </p>
-          <div className="flex gap-3">
-            <Button variant="outline" size="lg" onClick={() => navigate('/scene-result')}>
+          <div className="flex flex-col gap-2 sm:flex-row sm:gap-3">
+            <Button variant="outline" size="lg" onClick={() => navigate('/scene-result')} className="w-full sm:w-auto">
               返回内容
             </Button>
-            <Button size="lg" onClick={handleFinish} disabled={!canFinish} className="sm:min-w-[180px]">
+            <Button size="lg" onClick={handleFinish} disabled={!canFinish} className="w-full sm:w-auto sm:min-w-[180px]">
               进入角色演练
               <ArrowRight />
             </Button>

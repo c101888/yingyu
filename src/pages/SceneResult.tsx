@@ -27,6 +27,7 @@ import { useSessionStore } from '@/store/useSessionStore';
 import { useUserStore } from '@/store/useUserStore';
 import { generateSceneContent, enrichSceneContent } from '@/lib/llm';
 import type { EnrichMode } from '@/lib/llm';
+import { isAuthError } from '@/lib/api';
 import { speak, stopSpeaking } from '@/lib/voice';
 import { cn } from '@/lib/utils';
 import type { Mastery } from '@/lib/types';
@@ -102,6 +103,7 @@ export default function SceneResult() {
           createSession({ sceneInput: routeScene, source: 'route', content, difficulty: 'easy' });
         })
         .catch((err) => {
+          if (isAuthError(err)) return; // 登录已过期，静默处理
           setLoadError(err instanceof Error ? err.message : '生成失败');
         })
         .finally(() => setLoading(false));
@@ -219,6 +221,7 @@ export default function SceneResult() {
       setListenedWords(new Set());
       setListenedSentences(new Set());
     } catch (err) {
+      if (isAuthError(err)) return; // 登录已过期，静默处理
       setRegenError(err instanceof Error ? err.message : '重新生成失败，请再试一次');
     } finally {
       setRegenerating(false);
@@ -264,6 +267,7 @@ export default function SceneResult() {
       setListenedWords(new Set());
       setListenedSentences(new Set());
     } catch (err) {
+      if (isAuthError(err)) return; // 登录已过期，静默处理
       setEnrichError(err instanceof Error ? err.message : '丰富对话细节失败，请再试一次');
     } finally {
       setEnriching(false);
@@ -365,7 +369,7 @@ export default function SceneResult() {
             )
           }
         >
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
             {vocab.map((v, i) => {
               const listened = listenedWords.has(v.word);
               const isCurrent = seqPlaying === 'vocab' && currentSeqIdx === i;
@@ -455,13 +459,15 @@ export default function SceneResult() {
                     </div>
                     <p className="text-sm text-muted-foreground">{s.zh}</p>
                   </div>
-                  <SpeakButton
-                    text={s.en}
-                    variant="ghost"
-                    size="icon"
-                    className="shrink-0"
-                    onSpeak={() => handleMarkSentenceListened(i)}
-                  />
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <SpeakButton
+                      text={s.en}
+                      variant="ghost"
+                      size="icon"
+                      onSpeak={() => handleMarkSentenceListened(i)}
+                    />
+                    <SpeakButton text={s.en} rate={0.5} variant="ghost" size="sm" label="慢速" className="h-8 px-2 text-xs" />
+                  </div>
                 </div>
               );
             })}
@@ -495,7 +501,7 @@ export default function SceneResult() {
         >
           <div className="space-y-3">
             {dialogue.map((d) => (
-              <div key={d.round} className="space-y-1.5 rounded-2xl border border-border bg-card p-3 shadow-soft">
+              <div key={d.round} className="space-y-1.5 rounded-2xl border border-border bg-card p-3 shadow-soft sm:p-4">
                 <div className="flex items-start gap-2">
                   <span className="mt-0.5 shrink-0 rounded-full bg-peach-soft px-2 py-0.5 text-xs font-bold text-accent-foreground">
                     家长
@@ -525,10 +531,10 @@ export default function SceneResult() {
         <div className="mt-6 sm:mt-10 animate-fade-up" style={{ animationDelay: '0.22s' }}>
           <Card className="border-primary/20 bg-card/80 shadow-soft-lg">
             <CardContent className="p-4 sm:p-6">
-              <div className="mb-4 flex items-center justify-between">
+              <div className="mb-3 flex items-center justify-between sm:mb-4">
                 <div>
-                  <h2 className="font-display text-xl font-bold">孩子对这些内容熟悉吗？</h2>
-                  <p className="text-sm text-muted-foreground">
+                  <h2 className="font-display text-base font-bold sm:text-xl">孩子对这些内容熟悉吗？</h2>
+                  <p className="text-xs text-muted-foreground sm:text-sm">
                     {hasEngaged
                       ? '根据刚才的浏览，选一个适合的下一步'
                       : '先浏览上方内容，或直接选一个开始'}
@@ -542,10 +548,10 @@ export default function SceneResult() {
                   className="shrink-0"
                 >
                   {regenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-                  重新生成
+                  <span className="hidden sm:inline">重新生成</span>
                 </Button>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4">
                 {MASTERY_OPTIONS.map((opt) => {
                   const Icon = opt.icon;
                   const active = session.mastery === opt.value;
@@ -553,18 +559,18 @@ export default function SceneResult() {
                     <button
                       key={opt.value}
                       onClick={() => handleChoose(opt)}
-                      className={`group flex flex-col gap-2 rounded-2xl border-2 p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-soft ${
+                      className={`group flex flex-col gap-1 rounded-xl border-2 p-2.5 text-left transition-all hover:-translate-y-0.5 hover:shadow-soft sm:gap-2 sm:rounded-2xl sm:p-4 ${
                         active
                           ? 'border-primary bg-sage-soft/50'
                           : 'border-border bg-card hover:border-primary/40'
                       }`}
                     >
-                      <Icon className={`h-6 w-6 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
-                      <span className="font-display font-bold">{opt.label}</span>
-                      <span className="text-xs text-muted-foreground">{opt.desc}</span>
-                      <span className="mt-1 flex items-center gap-1 text-xs font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100">
+                      <Icon className={`h-5 w-5 sm:h-6 sm:w-6 ${active ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className="font-display text-xs font-bold sm:text-base">{opt.label}</span>
+                      <span className="text-[10px] text-muted-foreground sm:text-xs">{opt.desc}</span>
+                      <span className="mt-0.5 flex items-center gap-1 text-[10px] font-semibold text-primary opacity-0 transition-opacity group-hover:opacity-100 sm:mt-1 sm:text-xs">
                         {opt.next === 'learn' ? '去学习' : '去演练'}
-                        <ArrowRight className="h-3 w-3" />
+                        <ArrowRight className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                       </span>
                     </button>
                   );
@@ -582,11 +588,11 @@ export default function SceneResult() {
 
         {/* 快捷入口 */}
         <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center animate-fade-up" style={{ animationDelay: '0.26s' }}>
-          <Button variant="outline" size="lg" onClick={() => navigate('/learn')}>
+          <Button variant="outline" size="lg" onClick={() => navigate('/learn')} className="w-full sm:w-auto">
             <BookOpen />
             开始最小学习
           </Button>
-          <Button variant="accent" size="lg" onClick={() => navigate('/practice')}>
+          <Button variant="accent" size="lg" onClick={() => navigate('/practice')} className="w-full sm:w-auto">
             <MessageCircle />
             直接角色演练
           </Button>

@@ -253,9 +253,9 @@ export default function DailyRoute() {
                 >
                   <span>{r.icon}</span>
                   <span>{r.name}</span>
-                  <span className="text-[10px] opacity-70">{r.nodes.length}</span>
+                  <span className="text-[10px] sm:text-xs opacity-70">{r.nodes.length}</span>
                   {r.isPreset && (
-                    <span className="rounded-full bg-secondary/60 px-1.5 py-0.5 text-[9px]">预置</span>
+                    <span className="rounded-full bg-secondary/60 px-1.5 py-0.5 text-[9px] sm:text-[10px]">预置</span>
                   )}
                 </button>
               );
@@ -277,7 +277,7 @@ export default function DailyRoute() {
           </div>
           <div className="flex items-center gap-2">
             {!canEditRoute && currentUser && (
-              <Badge variant="muted" className="gap-1 text-[10px]">
+              <Badge variant="muted" className="gap-1 text-[10px] sm:text-xs">
                 <Crown className="h-3 w-3" />
                 升级后可编辑
               </Badge>
@@ -484,7 +484,7 @@ export default function DailyRoute() {
           onClick={() => setShowMetaEditor(false)}
         >
           <Card className="max-w-md w-full shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-lg font-bold">编辑路线信息</h3>
                 <button onClick={() => setShowMetaEditor(false)} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary">
@@ -540,7 +540,7 @@ export default function DailyRoute() {
           onClick={() => setShowCreator(false)}
         >
           <Card className="max-w-md w-full shadow-soft-lg" onClick={(e) => e.stopPropagation()}>
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h3 className="font-display text-lg font-bold">新建路线</h3>
                 <button onClick={() => setShowCreator(false)} className="grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-secondary">

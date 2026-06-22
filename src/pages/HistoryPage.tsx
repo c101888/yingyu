@@ -214,10 +214,10 @@ export default function HistoryPage() {
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <h3 className="truncate font-display text-base sm:text-lg font-bold">{entry.sceneNameZh}</h3>
-                          <Badge variant="muted" className="shrink-0 text-[10px]">
+                          <Badge variant="muted" className="shrink-0 text-[10px] sm:text-xs">
                             {entry.source === 'route' ? '路线' : entry.source === 'example' ? '推荐' : '自定义'}
                           </Badge>
-                          <Badge variant="muted" className="shrink-0 text-[10px]">
+                          <Badge variant="muted" className="shrink-0 text-[10px] sm:text-xs">
                             {entry.difficulty === 'easy' ? '简单' : entry.difficulty === 'medium' ? '难度' : '复杂'}
                           </Badge>
                         </div>
@@ -340,7 +340,7 @@ export default function HistoryPage() {
               className="max-w-sm border-destructive/30 shadow-soft-lg"
               onClick={(e) => e.stopPropagation()}
             >
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="mb-4 flex items-center gap-3">
                   <span className="grid h-10 w-10 place-items-center rounded-2xl bg-destructive/10 text-destructive">
                     <Trash2 className="h-5 w-5" />
