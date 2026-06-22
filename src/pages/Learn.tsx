@@ -140,7 +140,7 @@ export default function Learn() {
                   </span>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
-                      <p className="font-display text-base font-bold">{s.en}</p>
+                      <p className="font-display text-sm sm:text-base font-bold">{s.en}</p>
                       {done && <CheckCircle2 className="h-4 w-4 text-primary" />}
                     </div>
                     <p className="text-sm text-muted-foreground">{s.zh}</p>
@@ -207,7 +207,7 @@ export default function Learn() {
             <Button variant="outline" size="lg" onClick={() => navigate('/scene-result')}>
               返回内容
             </Button>
-            <Button size="lg" onClick={handleFinish} disabled={!canFinish} className="min-w-[180px]">
+            <Button size="lg" onClick={handleFinish} disabled={!canFinish} className="sm:min-w-[180px]">
               进入角色演练
               <ArrowRight />
             </Button>

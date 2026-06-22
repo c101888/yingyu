@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tsconfigPaths from "vite-tsconfig-paths";
-import { traeBadgePlugin } from 'vite-plugin-trae-solo-badge';
 
 // 火山引擎 ARK API Key（本地 MVP，经 Vite 代理注入，不暴露到前端 bundle）
 // 从环境变量读取，避免提交到仓库泄露
@@ -46,13 +45,6 @@ export default defineConfig({
   },
   plugins: [
     react(),
-    traeBadgePlugin({
-      variant: 'dark',
-      position: 'bottom-right',
-      prodOnly: true,
-      clickable: true,
-      clickUrl: 'https://www.trae.ai/solo?showJoin=1',
-    }),
     tsconfigPaths()
   ],
 })

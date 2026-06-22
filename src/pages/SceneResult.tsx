@@ -602,7 +602,7 @@ export default function SceneResult() {
               className="w-full max-w-md animate-fade-up border-border bg-card shadow-soft-lg"
               onClick={(e) => e.stopPropagation()}
             >
-              <CardContent className="p-5">
+              <CardContent className="p-5 max-h-[85vh] overflow-y-auto">
                 <div className="mb-3 flex items-center gap-2">
                   <span className="grid h-8 w-8 place-items-center rounded-xl bg-primary/10 text-primary">
                     {isPro ? <Wand2 className="h-4 w-4" /> : <Crown className="h-4 w-4 text-amber-500" />}

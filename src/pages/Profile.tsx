@@ -97,7 +97,7 @@ export default function Profile() {
       <div className="mx-auto max-w-4xl">
         {/* 用户信息卡 */}
         <Card className="overflow-hidden border-primary/20 shadow-soft-lg animate-fade-up">
-          <CardContent className="p-6 sm:p-8">
+          <CardContent className="p-4 sm:p-8">
             <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-start sm:justify-between">
               <div className="flex items-center gap-4">
                 <span className="grid h-20 w-20 place-items-center rounded-3xl bg-gradient-to-br from-sage-soft to-peach-soft text-5xl">
@@ -259,7 +259,7 @@ export default function Profile() {
         )}
 
         {/* 积分 + 等级概览 */}
-        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-3 animate-fade-up" style={{ animationDelay: '0.08s' }}>
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 animate-fade-up" style={{ animationDelay: '0.08s' }}>
           {/* 总星数 */}
           <Card className="border-amber-200 bg-gradient-to-br from-amber-50 to-yellow-50">
             <CardContent className="p-5">
@@ -359,7 +359,7 @@ export default function Profile() {
                 {currentLevel.level}/{LEVELS.length} 已解锁
               </Badge>
             </div>
-            <div className="grid grid-cols-5 gap-3 sm:grid-cols-10">
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-10 sm:gap-3">
               {LEVELS.map((lv) => {
                 const unlocked = totalStars >= lv.minStars;
                 const isCurrent = lv.level === currentLevel.level;

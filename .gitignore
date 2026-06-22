@@ -29,6 +29,9 @@ dist-ssr
 .env.production
 server/.env
 
+# 凭证文档（含服务器密码、API Key 等敏感信息）
+.trae/documents/credentials.md
+
 # 数据库与备份文件
 server/data/
 server/backups/
@@ -44,8 +47,11 @@ server/admin-ui/node_modules
 android/app/build
 android/.gradle
 android/hs_err_pid*.log
+android/build-log*.txt
 *.keystore
 *.keystore.properties
+*.apk
+dist.zip
 
 # 系统文件
 Thumbs.db

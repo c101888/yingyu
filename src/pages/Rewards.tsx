@@ -248,7 +248,7 @@ export default function Rewards() {
           </Button>
 
           <Card className="overflow-hidden border-primary/20 shadow-soft-lg animate-fade-up">
-            <CardContent className="p-8 text-center sm:p-12">
+            <CardContent className="p-6 text-center sm:p-12">
               <span className="mx-auto grid h-20 w-20 place-items-center rounded-3xl bg-gradient-to-br from-purple-100 to-pink-100 text-5xl">
                 👑
               </span>
@@ -438,7 +438,7 @@ export default function Rewards() {
                 const isDeleting = deletingId === reward.id;
                 return (
                   <Card key={reward.id} className="flex flex-col transition-all">
-                    <CardContent className="flex flex-1 flex-col p-5">
+                    <CardContent className="flex flex-1 flex-col p-4 sm:p-5">
                       {/* 头部：图标 + 预设标签 + 管理按钮 */}
                       <div className="mb-3 flex items-start justify-between">
                         <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-sage-soft to-peach-soft text-3xl">
@@ -611,7 +611,7 @@ export default function Rewards() {
                         <label className="mb-1.5 block text-xs font-semibold text-muted-foreground">
                           图标
                         </label>
-                        <div className="grid grid-cols-6 gap-2">
+                        <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">
                           {ICON_OPTIONS.map((icon) => (
                             <button
                               key={icon}

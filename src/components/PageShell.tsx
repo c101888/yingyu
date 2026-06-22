@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Home, History, User, GraduationCap } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 import { useUserStore } from '@/store/useUserStore';
@@ -27,9 +27,18 @@ function tierBadgeStyle(tier: 'free' | 'plus' | 'pro'): string {
   return 'border-border bg-card text-foreground hover:bg-secondary';
 }
 
+// 移动端底部 Tab 配置
+const MOBILE_TABS = [
+  { to: '/', label: '首页', icon: Home, match: (p: string) => p === '/' },
+  { to: '/learn-center', label: '学习', icon: GraduationCap, match: (p: string) => p === '/learn-center' },
+  { to: '/history', label: '历史', icon: History, match: (p: string) => p === '/history' },
+  { to: '/profile', label: '我的', icon: User, match: (p: string) => p === '/profile' },
+];
+
 export function PageShell({ children, showHome = true, showHistory = true, showProfile = true, showLearnCenter = true, step, className }: PageShellProps) {
   const currentUser = useUserStore((s) => s.currentUser);
   const tierInfo = useTierStore();
+  const location = useLocation();
 
   // 登录后刷新 tier 信息（用于首页生成按钮旁显示剩余次数）
   useEffect(() => {
@@ -43,17 +52,18 @@ export function PageShell({ children, showHome = true, showHistory = true, showP
   const badgeStyle = tierBadgeStyle(tier);
 
   return (
-    <div className="min-h-screen bg-warm-gradient">
-      <header className="sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between gap-4">
-          <Link to="/" className="flex items-center gap-2 font-display text-lg font-bold text-foreground">
-            <span className="grid h-9 w-9 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-soft">
+    <div className="safe-x flex min-h-screen flex-col bg-warm-gradient">
+      <header className="safe-top sticky top-0 z-30 border-b border-border/60 bg-background/70 backdrop-blur-md">
+        <div className="container flex h-14 items-center justify-between gap-2 sm:h-16 sm:gap-4">
+          <Link to="/" className="flex items-center gap-2 font-display text-base font-bold text-foreground sm:text-lg">
+            <span className="grid h-8 w-8 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-soft sm:h-9 sm:w-9">
               🏡
             </span>
             <span className="hidden sm:inline">家庭场景英语</span>
           </Link>
 
-          <div className="flex items-center gap-1.5 sm:gap-3">
+          {/* 桌面端：完整导航 */}
+          <div className="hidden items-center gap-3 sm:flex">
             <VoicePicker />
             {showLearnCenter && (
               <Link
@@ -109,6 +119,35 @@ export function PageShell({ children, showHome = true, showHistory = true, showP
               </Link>
             )}
           </div>
+
+          {/* 移动端：仅保留用户头像/登录入口（其余导航移到底部 Tab Bar） */}
+          <div className="flex items-center gap-2 sm:hidden">
+            {showProfile && (
+              currentUser ? (
+                <Link
+                  to="/profile"
+                  className={cn(
+                    'flex h-10 items-center gap-1.5 rounded-full border px-2 transition-colors',
+                    badgeStyle,
+                  )}
+                  title={`${currentUser.nickname} · 进入用户中心`}
+                >
+                  <span className="text-base leading-none">{currentUser.avatar}</span>
+                  {tier !== 'free' && (
+                    <span className="pr-1 text-xs font-semibold">{getTierName(tier)}</span>
+                  )}
+                </Link>
+              ) : (
+                <Link
+                  to="/profile"
+                  className="grid h-10 w-10 place-items-center rounded-2xl border border-border bg-card text-foreground transition-colors hover:bg-secondary"
+                  title="用户中心"
+                >
+                  <User className="h-5 w-5" />
+                </Link>
+              )
+            )}
+          </div>
         </div>
 
         {step !== undefined && (
@@ -144,11 +183,45 @@ export function PageShell({ children, showHome = true, showHistory = true, showP
         )}
       </header>
 
-      <main className={cn('container py-8 sm:py-12', className)}>{children}</main>
+      <main className={cn('container flex-1 py-6 sm:py-12', className)}>{children}</main>
 
-      <footer className="container py-8 text-center text-xs text-muted-foreground">
+      <footer className="container hidden py-8 text-center text-xs text-muted-foreground sm:block">
         把家庭生活里的真实场景，变成孩子马上能学、能说、能用的英语。
       </footer>
+
+      {/* 移动端底部 Tab Bar（固定底部，适配 safe-area） */}
+      <nav className="safe-bottom sticky bottom-0 z-30 border-t border-border/60 bg-background/85 backdrop-blur-md sm:hidden">
+        <div className="container grid grid-cols-4">
+          {MOBILE_TABS.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = tab.match(location.pathname);
+            // 当 PageShell 关闭了某个入口时，对应 Tab 仍可点击跳转，但不显示激活态
+            const visible =
+              (tab.to === '/' && showHome) ||
+              (tab.to === '/learn-center' && showLearnCenter) ||
+              (tab.to === '/history' && showHistory) ||
+              (tab.to === '/profile' && showProfile) ||
+              tab.to === '/';
+            if (!visible) {
+              // 入口被关闭时占位，保持 4 列布局对齐
+              return <div key={tab.to} className="h-14" aria-hidden />;
+            }
+            return (
+              <Link
+                key={tab.to}
+                to={tab.to}
+                className={cn(
+                  'flex h-14 flex-col items-center justify-center gap-0.5 text-[10px] font-medium transition-colors',
+                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                <Icon className={cn('h-5 w-5', isActive && 'scale-110')} />
+                <span>{tab.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

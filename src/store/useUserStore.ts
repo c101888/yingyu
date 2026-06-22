@@ -39,7 +39,7 @@ interface UserState {
   resetGuestUsage: () => void;
 }
 
-export const GUEST_MAX_USAGE = 3;
+export const GUEST_MAX_USAGE = 1;
 
 export const useUserStore = create<UserState>()(
   persist(

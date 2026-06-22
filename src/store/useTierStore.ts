@@ -32,9 +32,9 @@ export const useTierStore = create<TierState>((set, get) => ({
   tier: 'free',
   tierExpireAt: null,
   monthlyGenCount: 0,
-  monthlyGenLimit: 0,
+  monthlyGenLimit: 3,
   totalGenCount: 0,
-  totalGenLimit: 6,
+  totalGenLimit: 0,
   canGenerate: true,
   canEnrichDialogue: false,
   canRedeemRewards: false,
@@ -45,13 +45,13 @@ export const useTierStore = create<TierState>((set, get) => ({
   refresh: async () => {
     const currentUser = useUserStore.getState().currentUser;
     if (!currentUser) {
-      // 未登录用游客模式：3 次免费
+      // 未登录用游客模式：1 次免费试用（由 GUEST_MAX_USAGE 控制）
       set({
         tier: 'free',
         monthlyGenCount: 0,
-        monthlyGenLimit: 0,
+        monthlyGenLimit: 3,
         totalGenCount: 0,
-        totalGenLimit: 6,
+        totalGenLimit: 0,
         canGenerate: true,
         canEnrichDialogue: false,
         canRedeemRewards: false,
@@ -133,13 +133,22 @@ export const useTierStore = create<TierState>((set, get) => ({
 
   getRemainingText: () => {
     const { tier, monthlyGenCount, monthlyGenLimit, totalGenCount, totalGenLimit } = get();
-    if (tier === 'free') {
-      const remaining = Math.max(0, totalGenLimit - totalGenCount);
-      return `${totalGenCount}/${totalGenLimit} 次（剩余 ${remaining}）`;
+    // 游客模式（未登录）：由 GUEST_MAX_USAGE 控制，显示游客次数
+    const currentUser = useUserStore.getState().currentUser;
+    if (!currentUser) {
+      const guestUsage = useUserStore.getState().guestUsageCount;
+      const guestMax = useUserStore.getState().guestMaxUsage;
+      return `游客试用 ${guestUsage}/${guestMax} 次`;
     }
+    // 有月度限制的 tier（free=3/月, plus=90/月, pro=150/月）
     if (monthlyGenLimit > 0) {
       const remaining = Math.max(0, monthlyGenLimit - monthlyGenCount);
       return `${monthlyGenCount}/${monthlyGenLimit} 次/月（剩余 ${remaining}）`;
+    }
+    // 有终身限制的 tier
+    if (totalGenLimit > 0) {
+      const remaining = Math.max(0, totalGenLimit - totalGenCount);
+      return `${totalGenCount}/${totalGenLimit} 次（剩余 ${remaining}）`;
     }
     return '无限制';
   },

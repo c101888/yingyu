@@ -124,7 +124,7 @@ export default function Done() {
         {/* 今日场景 */}
         <Card className="mt-8 overflow-hidden border-primary/20 animate-fade-up" style={{ animationDelay: '0.1s' }}>
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">今日场景</p>
                 <h2 className="font-display text-2xl font-bold">{content.sceneNameZh}</h2>

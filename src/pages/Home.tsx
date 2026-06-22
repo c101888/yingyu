@@ -233,30 +233,30 @@ export default function Home() {
 
       {/* Hero */}
       <section className="mx-auto max-w-3xl text-center animate-fade-up">
-        <Badge variant="sage" className="mb-5 gap-1.5 px-4 py-1.5 text-sm">
+        <Badge variant="sage" className="mb-4 gap-1.5 px-3 py-1 text-xs sm:mb-5 sm:px-4 sm:py-1.5 sm:text-sm">
           <Sparkles className="h-3.5 w-3.5" />
           家庭亲子共学 · 今日从一个生活场景开始
         </Badge>
-        <h1 className="font-display text-4xl font-bold leading-tight text-balance sm:text-5xl">
+        <h1 className="font-display text-2xl font-bold leading-tight text-balance sm:text-4xl sm:text-5xl">
           把今天生活里发生的一件事，
           <br className="hidden sm:block" />
           变成孩子<span className="text-primary">马上能说</span>的英语
         </h1>
-        <p className="mx-auto mt-5 max-w-xl text-lg text-muted-foreground text-balance">
+        <p className="mx-auto mt-3 max-w-xl text-sm text-muted-foreground text-balance sm:mt-5 sm:text-lg">
           孩子正在吃黄瓜、正在刷牙、正要出门上学——
           选一个刚发生的真实场景，我们一起把它变成几句能听、能说、能练的英语。
         </p>
       </section>
 
       {/* 临时场景输入 */}
-      <section className="mx-auto mt-10 max-w-4xl animate-fade-up" style={{ animationDelay: '0.08s' }}>
+      <section className="mx-auto mt-6 max-w-4xl animate-fade-up sm:mt-10" style={{ animationDelay: '0.08s' }}>
         <Card className="overflow-hidden border-primary/20 shadow-soft-lg">
-          <CardContent className="p-6 sm:p-7">
+          <CardContent className="p-4 sm:p-7">
             <div className="mb-3 flex items-center gap-2">
               <span className="grid h-9 w-9 place-items-center rounded-2xl bg-peach-soft text-xl">✍️</span>
               <div>
-                <h2 className="font-display text-lg font-bold">刚刚发生了什么？</h2>
-                <p className="text-sm text-muted-foreground">把孩子正在做的事写下来，AI 会生成几句亲子英语</p>
+                <h2 className="font-display text-base font-bold sm:text-lg">刚刚发生了什么？</h2>
+                <p className="text-xs text-muted-foreground sm:text-sm">把孩子正在做的事写下来，AI 会生成几句亲子英语</p>
               </div>
             </div>
             <Textarea
@@ -271,7 +271,7 @@ export default function Home() {
               }}
             />
             {/* 难易度选择（紧凑分段控件） */}
-            <div className="mt-4 flex items-center gap-2">
+            <div className="mt-4 flex flex-wrap items-center gap-2">
               <span className="text-xs font-medium text-muted-foreground">难度</span>
               <div className="inline-flex rounded-full border border-border bg-muted/40 p-0.5">
                 {DIFFICULTY_OPTIONS.map((opt) => {
@@ -284,7 +284,7 @@ export default function Home() {
                       disabled={generating}
                       title={opt.desc}
                       className={cn(
-                        'rounded-full px-4 py-2 text-xs font-semibold transition-all disabled:opacity-50',
+                        'rounded-full px-3 py-1.5 text-xs font-semibold transition-all disabled:opacity-50 sm:px-4 sm:py-2',
                         active
                           ? 'bg-primary text-primary-foreground shadow-soft'
                           : 'text-muted-foreground hover:text-foreground',
@@ -295,12 +295,12 @@ export default function Home() {
                   );
                 })}
               </div>
-              <span className="text-[11px] text-muted-foreground">
+              <span className="hidden text-[11px] text-muted-foreground sm:inline">
                 {DIFFICULTY_OPTIONS.find((o) => o.value === difficulty)?.desc}
               </span>
             </div>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <span className="text-xs text-muted-foreground">⌘/Ctrl + Enter 快速生成</span>
+              <span className="hidden text-xs text-muted-foreground sm:inline">⌘/Ctrl + Enter 快速生成</span>
               <div className="flex items-center gap-2">
                 {/* 生成按钮左边：当前权益使用次数（登录用户显示，纯文字+小圆点指示 tier） */}
                 {currentUser && (
@@ -326,7 +326,7 @@ export default function Home() {
                   size="lg"
                   onClick={() => startGenerate(input, 'input')}
                   disabled={!input.trim() || generating}
-                  className="sm:min-w-[180px]"
+                  className="flex-1 sm:flex-none sm:min-w-[180px]"
                 >
                   {generating ? (
                     <>
@@ -476,25 +476,25 @@ export default function Home() {
             换一批
           </Button>
         </div>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3">
           {randomScenes.map((ex, i) => (
             <button
               key={ex.id}
               onClick={() => handleExample(ex)}
               disabled={generating}
-              className="group relative flex flex-col gap-3 rounded-3xl border border-border bg-card p-5 text-left shadow-soft transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-soft-lg disabled:opacity-50"
+              className="group relative flex flex-col gap-2 rounded-2xl border border-border bg-card p-3 text-left shadow-soft transition-all hover:-translate-y-1 hover:border-primary/30 hover:shadow-soft-lg disabled:opacity-50 sm:gap-3 sm:rounded-3xl sm:p-5"
               style={{ animationDelay: `${0.2 + i * 0.04}s` }}
             >
               <div className="flex items-start justify-between">
-                <span className="grid h-12 w-12 place-items-center rounded-2xl bg-gradient-to-br from-peach-soft to-sage-soft text-2xl">
+                <span className="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-peach-soft to-sage-soft text-xl sm:h-12 sm:w-12 sm:text-2xl">
                   {ex.emoji}
                 </span>
                 <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
               </div>
               <div>
-                <h3 className="font-display text-lg font-bold">{ex.nameZh}</h3>
-                <p className="text-sm font-medium text-primary/80">{ex.nameEn}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{ex.hint}</p>
+                <h3 className="font-display text-sm font-bold sm:text-lg">{ex.nameZh}</h3>
+                <p className="text-xs font-medium text-primary/80 sm:text-sm">{ex.nameEn}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground sm:mt-1 sm:text-sm">{ex.hint}</p>
               </div>
             </button>
           ))}

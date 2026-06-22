@@ -229,7 +229,7 @@ export default function HistoryPage() {
                         </div>
                         {/* 学习进度条 */}
                         <div className="mt-2 flex items-center gap-2">
-                          <div className="h-1.5 w-32 overflow-hidden rounded-full bg-muted">
+                          <div className="h-1.5 flex-1 max-w-[120px] sm:w-32 sm:max-w-none overflow-hidden rounded-full bg-muted">
                             <div
                               className={cn(
                                 'h-full rounded-full transition-all',

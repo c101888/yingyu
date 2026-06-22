@@ -103,7 +103,43 @@ export function getDb(): DatabaseWrapper {
   // 迁移：为旧数据库补充新增列（CREATE TABLE IF NOT EXISTS 不会添加新列）
   migrateUsersTable(db);
 
+  // 种子：如果 llm_providers 表为空且环境变量有 ARK_API_KEY，自动插入火山引擎配置
+  seedLlmProviders(db);
+
   return db;
+}
+
+// 种子 LLM providers：如果表为空且环境变量有 ARK_API_KEY，自动插入火山引擎配置
+function seedLlmProviders(db: DatabaseWrapper): void {
+  const count = db.prepare('SELECT COUNT(*) as cnt FROM llm_providers').get() as { cnt: number };
+  if (count.cnt > 0) return; // 已有配置，不覆盖
+
+  const apiKey = config.arkApiKey;
+  if (!apiKey) {
+    console.log('⚠️ llm_providers 表为空且未配置 ARK_API_KEY 环境变量，请在后台手动添加 LLM 配置');
+    return;
+  }
+
+  const now = Date.now();
+  const id = 'volcengine-ark-default';
+  db.prepare(`
+    INSERT INTO llm_providers (id, name, base_url, api_key, model, priority, is_active, max_concurrency, fail_count, cooldown_until, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id,
+    '火山引擎 ARK',
+    config.arkBaseUrl,
+    apiKey,
+    'glm-5.2',
+    1,        // priority
+    1,        // is_active
+    5,        // max_concurrency
+    0,        // fail_count
+    0,        // cooldown_until
+    now,      // created_at
+    now,      // updated_at
+  );
+  console.log('✅ 已自动种子火山引擎 ARK LLM 配置（后台 /admin/llm 可查看和编辑）');
 }
 
 // users 表迁移：添加 tier 等新列（如果不存在）

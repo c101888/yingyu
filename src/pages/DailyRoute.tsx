@@ -338,7 +338,7 @@ export default function DailyRoute() {
                     </div>
                   </div>
                   <Card className="flex-1 transition-all hover:shadow-soft-lg">
-                    <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+                    <CardContent className="flex flex-col gap-3 p-4 sm:p-5 sm:flex-row sm:items-center sm:justify-between">
                       <div className="flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <h3 className="font-display text-lg font-bold">{node.nameZh}</h3>
@@ -395,7 +395,7 @@ export default function DailyRoute() {
                       </button>
                     </div>
                     <div className="flex-1 space-y-2">
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row sm:gap-2">
                         <select
                           value={node.emoji}
                           onChange={(e) => handleNodeChange(i, { emoji: e.target.value })}

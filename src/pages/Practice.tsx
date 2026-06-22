@@ -195,7 +195,7 @@ export default function Practice() {
 
         {/* 对话舞台 */}
         <Card className="overflow-hidden border-primary/20 shadow-soft-lg animate-fade-up" style={{ animationDelay: '0.12s' }}>
-          <CardContent className="p-6 sm:p-8">
+          <CardContent className="p-4 sm:p-6 sm:p-8">
             {/* 轮次标记 */}
             <div className="mb-4 flex items-center justify-center gap-2">
               <span className="grid h-8 w-8 place-items-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
@@ -210,9 +210,9 @@ export default function Practice() {
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-peach-soft text-2xl shadow-soft">
                   👩
                 </span>
-                <div className="rounded-3xl rounded-tl-md border border-border bg-card px-5 py-3 shadow-soft">
+                <div className="rounded-3xl rounded-tl-md border border-border bg-card px-3 py-2 sm:px-5 sm:py-3 shadow-soft">
                   <span className="mb-1 block text-xs font-bold text-accent-foreground/70">家长 Parent</span>
-                  <p className="font-display text-lg font-bold text-foreground">{current.parent}</p>
+                  <p className="font-display text-base sm:text-lg font-bold text-foreground">{current.parent}</p>
                   <p className="text-sm text-muted-foreground">{current.parentZh}</p>
                   <SpeakButton text={current.parent} variant="ghost" size="sm" label="听家长" className="mt-2 h-8" />
                 </div>
@@ -224,14 +224,14 @@ export default function Practice() {
               <div className="flex max-w-[85%] items-start gap-3">
                 <div
                   className={cn(
-                    'rounded-3xl rounded-tr-md border-2 px-5 py-3 shadow-soft transition-colors',
+                    'rounded-3xl rounded-tr-md border-2 px-3 py-2 sm:px-5 sm:py-3 shadow-soft transition-colors',
                     childSpoken
                       ? 'border-primary/40 bg-sage-soft/40'
                       : 'border-primary bg-primary/5',
                   )}
                 >
                   <span className="mb-1 block text-right text-xs font-bold text-primary/70">孩子 Child</span>
-                  <p className="text-right font-display text-lg font-bold text-foreground">{current.child}</p>
+                  <p className="text-right font-display text-base sm:text-lg font-bold text-foreground">{current.child}</p>
                   <p className="text-right text-sm text-muted-foreground">{current.childZh}</p>
                   <div className="mt-2 flex justify-end gap-1.5">
                     <SpeakButton text={current.child} variant="soft" size="sm" label="听示范" className="h-8" />
@@ -279,7 +279,7 @@ export default function Practice() {
             <Button
               size="lg"
               onClick={handleNext}
-              className="min-w-[180px]"
+              className="sm:min-w-[180px]"
             >
               {isLast ? (
                 <>

@@ -18,7 +18,8 @@ import fs from 'fs';
 const app = express();
 
 // 中间件
-app.use(cors({ origin: config.corsOrigin, credentials: true }));
+// 允许所有来源：Web 浏览器、Capacitor APK（origin=http://localhost）、PWA 等都能访问
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: '10mb' }));
 
 // 健康检查
