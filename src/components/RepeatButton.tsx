@@ -34,6 +34,7 @@ export function RepeatButton({
   const [errorMsg, setErrorMsg] = useState<string>('');
   const stopFnRef = useRef<(() => void) | null>(null);
   const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const preparingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const supported = recognitionSupported();
 
@@ -41,6 +42,7 @@ export function RepeatButton({
   useEffect(() => {
     return () => {
       if (processingTimerRef.current) clearTimeout(processingTimerRef.current);
+      if (preparingTimerRef.current) clearTimeout(preparingTimerRef.current);
       stopFnRef.current?.();
       stopFnRef.current = null;
     };
@@ -50,6 +52,13 @@ export function RepeatButton({
     if (processingTimerRef.current) {
       clearTimeout(processingTimerRef.current);
       processingTimerRef.current = null;
+    }
+  };
+
+  const clearPreparingTimer = () => {
+    if (preparingTimerRef.current) {
+      clearTimeout(preparingTimerRef.current);
+      preparingTimerRef.current = null;
     }
   };
 
@@ -64,30 +73,42 @@ export function RepeatButton({
     stopFnRef.current?.();
     stopFnRef.current = null;
     clearProcessingTimer();
+    clearPreparingTimer();
 
     setStatus('preparing');
     setResult(null);
     setErrorMsg('');
 
+    // preparing 兜底：6 秒后还在 preparing 说明插件 start 卡住了，强制进入录音状态
+    // 让用户至少能点"停止录音"恢复
+    preparingTimerRef.current = setTimeout(() => {
+      preparingTimerRef.current = null;
+      setStatus((s) => (s === 'preparing' ? 'recording' : s));
+    }, 6000);
+
     const stop = startRecognition(text, {
       lang,
       onStart: () => {
-        // 录音真正开始（原生平台收到 listeningState=started，或 Web 收到 onstart）
+        // 录音真正开始（原生平台收到 listeningState=started 或 start() resolve，或 Web 收到 onstart）
+        clearPreparingTimer();
         setStatus((s) => (s === 'preparing' ? 'recording' : s));
       },
       onResult: (r) => {
         clearProcessingTimer();
+        clearPreparingTimer();
         setResult(r);
         setStatus('done');
         onScored?.(r);
       },
       onError: (msg) => {
         clearProcessingTimer();
+        clearPreparingTimer();
         setErrorMsg(msg);
         setStatus('error');
       },
       onEnd: () => {
         clearProcessingTimer();
+        clearPreparingTimer();
         // 兜底：onEnd 触发但既无 onResult 也无 onError，强制回到 idle 而不是卡在 preparing/processing
         setStatus((s) => {
           if (s === 'preparing' || s === 'recording' || s === 'processing') {
@@ -103,6 +124,7 @@ export function RepeatButton({
   const handleStop = useCallback(() => {
     stopFnRef.current?.();
     stopFnRef.current = null;
+    clearPreparingTimer();
     setStatus('processing');
     // 超时保护：触发 stop 后如果 8 秒内 onResult/onError/onEnd 都没回调，强制重置
     clearProcessingTimer();
@@ -118,8 +140,20 @@ export function RepeatButton({
     }, 8000);
   }, []);
 
+  // 取消按钮：在 preparing/recording 状态下都可调用，立即放弃识别回到 idle
+  const handleCancel = useCallback(() => {
+    stopFnRef.current?.();
+    stopFnRef.current = null;
+    clearPreparingTimer();
+    clearProcessingTimer();
+    setStatus('idle');
+    setResult(null);
+    setErrorMsg('');
+  }, []);
+
   const handleReset = useCallback(() => {
     clearProcessingTimer();
+    clearPreparingTimer();
     stopFnRef.current?.();
     stopFnRef.current = null;
     setStatus('idle');
@@ -179,11 +213,19 @@ export function RepeatButton({
   }
 
   // 准备中：已点击但录音还没真正开始（原生权限弹窗/插件初始化）
+  // 改为可点击的"取消"按钮，避免任何情况下用户被卡死
   if (status === 'preparing') {
     return (
-      <Button type="button" variant="soft" size={size} disabled className={cn('gap-1.5', className)}>
+      <Button
+        type="button"
+        variant="soft"
+        size={size}
+        onClick={handleCancel}
+        className={cn('gap-1.5', className)}
+        title="点击取消"
+      >
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        {size !== 'icon' && <span>准备录音…</span>}
+        {size !== 'icon' && <span>准备录音…点击取消</span>}
       </Button>
     );
   }

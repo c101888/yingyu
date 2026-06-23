@@ -111,12 +111,28 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
   const lang = options.lang || 'en-US';
   let stopped = false;
   let finished = false;
+  let started = false; // 是否已经回调过 onStart
   let listeningHandle: PluginListenerHandle | null = null;
   let partialHandle: PluginListenerHandle | null = null;
   let accumulatedTranscript = '';
   let lastPartialMatches: string[] = [];
+  let startFallbackTimer: ReturnType<typeof setTimeout> | null = null;
+
+  const triggerStartOnce = () => {
+    if (started || stopped || finished) return;
+    started = true;
+    if (startFallbackTimer) {
+      clearTimeout(startFallbackTimer);
+      startFallbackTimer = null;
+    }
+    options.onStart?.();
+  };
 
   const cleanup = async () => {
+    if (startFallbackTimer) {
+      clearTimeout(startFallbackTimer);
+      startFallbackTimer = null;
+    }
     try { await listeningHandle?.remove(); } catch {}
     try { await partialHandle?.remove(); } catch {}
     listeningHandle = null;
@@ -152,14 +168,14 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
 
       if (stopped) return;
 
-      // 2. 注册 listeningState 事件 —— 让 UI 在录音真正开始时进入"录音中"
+      // 2. 注册 listeningState 事件 —— 仅用于日志和兜底（不依赖它切换 UI 状态）
       try {
         listeningHandle = await SpeechRecognition.addListener(
           'listeningState',
           (data: { status: 'started' | 'stopped' }) => {
             console.warn('[SpeechRecognition] listeningState:', data.status);
-            if (data.status === 'started' && !stopped && !finished) {
-              options.onStart?.();
+            if (data.status === 'started') {
+              triggerStartOnce();
             }
           },
         );
@@ -173,6 +189,8 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
           'partialResults',
           (data: { matches: string[] }) => {
             console.warn('[SpeechRecognition] partialResults:', data.matches);
+            // 收到 partialResults 说明录音肯定开始了，兜底触发 onStart
+            triggerStartOnce();
             if (data.matches && data.matches.length > 0) {
               lastPartialMatches = data.matches;
             }
@@ -188,8 +206,18 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
       }
 
       // 4. 启动识别
-      // partialResults: true → start() 立即 resolve，结果通过事件流；用户主动 stop() 时再评分
+      // 关键修复：partialResults:true 模式下 start() 调用后立即 resolve，
+      // 此时录音几乎已开始（onReadyForSpeech 事件触发只是时间问题）。
+      // 不再等待 listeningState 事件——它在国内安卓上可能延迟数秒甚至不触发。
       nativeRecognitionActive = true;
+
+      // 兜底 1: 1.5 秒还没收到 listeningState=started，主动触发 onStart
+      // 因为 start() 在 partialResults:true 下其实是立即 resolve 的，但 await 前后状态可能错乱
+      startFallbackTimer = setTimeout(() => {
+        startFallbackTimer = null;
+        triggerStartOnce();
+      }, 1500);
+
       try {
         const result = await SpeechRecognition.start({
           language: lang,
@@ -198,6 +226,9 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
           popup: false,
         });
         console.warn('[SpeechRecognition] start() resolved:', result);
+
+        // start() resolve 即视为录音已启动（partialResults:true 模式下保证立即 resolve）
+        triggerStartOnce();
 
         // 某些实现 start() 也可能直接返回 matches（partialResults:false 时）
         if (result && Array.isArray(result.matches) && result.matches.length > 0) {
@@ -222,7 +253,6 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
     stopped = true;
     void (async () => {
       try {
-        // 主动停止识别
         await SpeechRecognition.stop();
       } catch (err) {
         console.warn('[SpeechRecognition] stop() error:', err);
