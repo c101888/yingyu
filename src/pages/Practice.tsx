@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SpeakButton } from '@/components/SpeakButton';
+import { RepeatButton } from '@/components/RepeatButton';
 import { useSessionStore } from '@/store/useSessionStore';
 import { speak, stopSpeaking } from '@/lib/voice';
 import { cn } from '@/lib/utils';
@@ -93,16 +94,6 @@ export default function Practice() {
       },
       onerror: () => setPlayingDemo(false),
     });
-  };
-
-  const handleChildRead = () => {
-    speak(current.child, { rate: 0.85, onend: () => {
-      setChildSpoken(true);
-      setSpokenCount((c) => c + 1);
-    }, onerror: () => {
-      setChildSpoken(true);
-      setSpokenCount((c) => c + 1);
-    } });
   };
 
   const handleNext = () => {
@@ -235,15 +226,16 @@ export default function Practice() {
                   <p className="text-right text-sm text-muted-foreground">{current.childZh}</p>
                   <div className="mt-2 flex justify-end gap-1.5">
                     <SpeakButton text={current.child} variant="soft" size="sm" label="听示范" className="h-8" />
-                    <Button
-                      variant={childSpoken ? 'ghost' : 'default'}
+                    <RepeatButton
+                      text={current.child}
                       size="sm"
+                      variant={childSpoken ? 'ghost' : 'default'}
                       className="h-8"
-                      onClick={handleChildRead}
-                    >
-                      <Mic className="h-3.5 w-3.5" />
-                      {childSpoken ? '再说一次' : '跟读'}
-                    </Button>
+                      onScored={() => {
+                        setChildSpoken(true);
+                        setSpokenCount((c) => c + 1);
+                      }}
+                    />
                   </div>
                 </div>
                 <span className="grid h-10 w-10 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-2xl bg-sage-soft text-xl sm:text-2xl shadow-soft">

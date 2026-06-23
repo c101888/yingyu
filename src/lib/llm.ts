@@ -339,22 +339,26 @@ export async function enrichSceneContent(
 
   // enrich 模式：合并原对话 + 新对话，保留原轮次
   if (mode === 'enrich') {
-    return mergeEnrichedContent(currentContent, normalizeContent(parsed, sceneInput, cfg.maxVocab, cfg.maxSentences, cfg.maxDialogue), cfg.maxDialogue);
+    // enrich 模式不截断，允许超出 maxDialogue（合并函数会控制上限）
+    const enriched = normalizeContent(parsed, sceneInput, 8, 10, 6);
+    return mergeEnrichedContent(currentContent, enriched, cfg.maxDialogue);
   }
   return normalizeContent(parsed, sceneInput, cfg.maxVocab, cfg.maxSentences, cfg.maxDialogue);
 }
 
 // enrich 模式合并策略：保留原对话全部轮次，追加新对话中不重复的轮次，上限 maxDialogue*2
 function mergeEnrichedContent(original: SceneContent, enriched: SceneContent, maxDialogue: number): SceneContent {
-  const upperLimit = Math.min(maxDialogue + 2, 6); // 最多 6 轮，避免过长
+  const upperLimit = Math.min(maxDialogue + 3, 6); // 最多 6 轮，避免过长
   const merged = [...original.dialogue];
+  // 记录原对话的 parent+child 组合，用于精确去重
+  const originalKeys = new Set(original.dialogue.map((d) => `${d.parent}|${d.child}`));
+
   for (const d of enriched.dialogue) {
-    // 跳过与原对话重复的轮次（按 parent+child 内容判断）
-    const isDup = merged.some(
-      (m) => m.parent === d.parent && m.child === d.child,
-    );
-    if (!isDup && merged.length < upperLimit) {
+    // 只跳过与原对话完全相同的轮次（parent 和 child 都一样）
+    const key = `${d.parent}|${d.child}`;
+    if (!originalKeys.has(key) && merged.length < upperLimit) {
       merged.push({ ...d, round: merged.length + 1 });
+      originalKeys.add(key);
     }
   }
   // 合并词汇：原词汇 + 新词汇中不重复的，去重
@@ -405,10 +409,14 @@ function buildEnrichPrompt(
     ? [
         'MODE: ENRICH (保留原对话，增加细节)',
         'CRITICAL: You MUST KEEP ALL original dialogue rounds unchanged. Do NOT modify or remove any existing dialogue.',
-        'You should ADD 1-2 NEW dialogue rounds that incorporate the user instruction, placing them AFTER the original rounds.',
-        'You may also ADD new vocab items and core sentences that fit the user instruction.',
-        'Keep existing vocab and sentences. New ones should be ADDITIVE, not replacements.',
-        `Total dialogue rounds after enriching: ${currentContent.dialogue.length + 1} to ${Math.min(currentContent.dialogue.length + 2, 6)}.`,
+        `You MUST ADD at least 2 NEW dialogue rounds that incorporate the user instruction: "${userHint}".`,
+        'Each new dialogue round MUST have a complete parent+child exchange (parent says something, child responds).',
+        'You MUST also ADD at least 2 NEW vocab items and at least 2 NEW core sentences related to the user instruction.',
+        'New vocab and sentences MUST be DIFFERENT from existing ones (do not repeat existing content).',
+        'Place new dialogue rounds AFTER the original rounds, maintaining natural conversation flow.',
+        `Total dialogue rounds after enriching: ${currentContent.dialogue.length + 2} to ${Math.min(currentContent.dialogue.length + 3, 6)}.`,
+        `Total vocab after enriching: ${currentContent.vocab.length + 2} to ${Math.min(currentContent.vocab.length + 3, 8)}.`,
+        `Total core sentences after enriching: ${currentContent.coreSentences.length + 2} to ${Math.min(currentContent.coreSentences.length + 3, 10)}.`,
       ].join('\n')
     : [
         'MODE: REGENERATE (完全重新生成)',
