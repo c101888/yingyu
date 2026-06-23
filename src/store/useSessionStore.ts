@@ -40,33 +40,25 @@ function syncSessionToBackend(session: LearnSession) {
 
   checkBackend().then((up) => {
     if (!up) return;
-    // 先尝试创建，如果已存在则更新
-    api.createSession({
-      sceneInput: session.sceneInput,
+    // 用 PATCH 更新已有 session（包括 content、状态等）
+    api.updateSession(session.id, {
+      content: session.content,
       sceneNameZh: session.content.sceneNameZh,
       sceneNameEn: session.content.sceneNameEn,
-      source: session.source,
-      difficulty: session.difficulty || 'easy',
-      content: session.content,
+      learnedDone: session.learnedDone,
+      practiceDone: session.practiceDone,
+      practiceRound: session.practiceRound,
     })
-      .then(() => {
-        // 创建成功后更新学习/演练状态
-        if (session.learnedDone || session.practiceDone) {
-          return api.updateSession(session.id, {
-            learnedDone: session.learnedDone,
-            practiceDone: session.practiceDone,
-            practiceRound: session.practiceRound,
-          });
-        }
-      })
       .catch((err) => {
-        // 已存在（重复创建）或认证错误，静默处理
         if (isAuthError(err)) return;
-        // 尝试更新已有 session
-        api.updateSession(session.id, {
-          learnedDone: session.learnedDone,
-          practiceDone: session.practiceDone,
-          practiceRound: session.practiceRound,
+        // session 不存在（可能是旧数据），尝试创建
+        api.createSession({
+          sceneInput: session.sceneInput,
+          sceneNameZh: session.content.sceneNameZh,
+          sceneNameEn: session.content.sceneNameEn,
+          source: session.source,
+          difficulty: session.difficulty || 'easy',
+          content: session.content,
         }).catch(() => {});
       });
   }).catch(() => {});
@@ -98,7 +90,15 @@ export const useSessionStore = create<SessionState>()(
           return { session };
         }),
       setContent: (content) =>
-        set((s) => (s.session ? { session: { ...s.session, content } } : s)),
+        set((s) => {
+          if (!s.session) return s;
+          const updated = { ...s.session, content };
+          // 同步到历史记录（更新本地）
+          useHistoryStore.getState().addEntry(updated, getCurrentUserId());
+          // 同步到后端数据库（更新 content）
+          syncSessionToBackend(updated);
+          return { session: updated };
+        }),
       restoreSession: (session) => set({ session }),
       setMastery: (mastery) =>
         set((s) => (s.session ? { session: { ...s.session, mastery } } : s)),

@@ -140,55 +140,83 @@ export function startRecognition(original: string, options: RecognizeOptions = {
     return () => {};
   }
 
-  const recognition = new Ctor();
-  recognition.lang = options.lang || 'en-US';
-  recognition.interimResults = false;
-  recognition.maxAlternatives = 1;
-  recognition.continuous = false;
+  let retryCount = 0;
+  const maxRetries = 2; // aborted 时最多重试 2 次
+  let stopped = false;
+  let recognition: SpeechRecognitionLike | null = null;
 
-  let finalTranscript = '';
+  const startAttempt = () => {
+    if (stopped) return;
+    recognition = new Ctor();
+    recognition.lang = options.lang || 'en-US';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.continuous = false;
 
-  recognition.onresult = (event: SpeechRecognitionEventLike) => {
-    // 拼接所有识别结果
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const result = event.results[i];
-      if (result.isFinal) {
-        finalTranscript += result[0].transcript;
+    let finalTranscript = '';
+
+    recognition.onresult = (event: SpeechRecognitionEventLike) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const result = event.results[i];
+        if (result.isFinal) {
+          finalTranscript += result[0].transcript;
+        }
       }
+      const result = calculateScore(original, finalTranscript);
+      options.onResult?.(result);
+    };
+
+    recognition.onerror = (event: SpeechRecognitionErrorLike) => {
+      // aborted 错误：Android WebView 权限刚授予时可能立即触发，自动重试
+      if (event.error === 'aborted' && retryCount < maxRetries) {
+        retryCount++;
+        // 延迟后重试
+        setTimeout(() => {
+          if (!stopped) startAttempt();
+        }, 300);
+        return;
+      }
+
+      let msg = '识别失败';
+      if (event.error === 'no-speech') msg = '没有听到声音，请再试一次';
+      else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+        msg = '请允许麦克风权限后重试';
+      } else if (event.error === 'aborted') {
+        // 重试次数用完，提示用户重新点击
+        msg = '识别启动失败，请再次点击跟读按钮';
+      } else {
+        msg = `识别失败：${event.error}`;
+      }
+      options.onError?.(msg);
+    };
+
+    recognition.onend = () => {
+      if (!stopped) options.onEnd?.();
+    };
+
+    try {
+      recognition.start();
+    } catch (err) {
+      // start 失败可能是 "already started"，延迟后重试
+      if (retryCount < maxRetries) {
+        retryCount++;
+        setTimeout(() => {
+          if (!stopped) startAttempt();
+        }, 300);
+        return;
+      }
+      options.onError?.(`无法启动识别：${err instanceof Error ? err.message : '未知错误'}`);
     }
-    const result = calculateScore(original, finalTranscript);
-    options.onResult?.(result);
   };
 
-  recognition.onerror = (event: SpeechRecognitionErrorLike) => {
-    let msg = '识别失败';
-    if (event.error === 'no-speech') msg = '没有听到声音，请再试一次';
-    else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-      msg = '请允许麦克风权限后重试';
-    } else if (event.error === 'aborted') {
-      msg = '识别已取消';
-    } else {
-      msg = `识别失败：${event.error}`;
-    }
-    options.onError?.(msg);
-  };
-
-  recognition.onend = () => {
-    options.onEnd?.();
-  };
-
-  try {
-    recognition.start();
-  } catch (err) {
-    options.onError?.(`无法启动识别：${err instanceof Error ? err.message : '未知错误'}`);
-    return () => {};
-  }
+  startAttempt();
 
   return () => {
-    try {
-      recognition.stop();
-    } catch {
-      // 忽略已停止的错误
+    stopped = true;
+    if (recognition) {
+      try {
+        recognition.stop();
+      } catch {}
     }
   };
 }

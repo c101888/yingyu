@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef } from 'react';
 import { Check, X, Repeat, ChevronRight, Headphones, Eye, Type, ArrowLeftRight, PencilLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -26,6 +26,10 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
   const [showResult, setShowResult] = useState<Record<string, boolean>>({}); // questionId -> 是否已作答
   const [playedAudios, setPlayedAudios] = useState<Set<string>>(new Set()); // 已播放的听题
   const [finished, setFinished] = useState(false);
+  // 防跳题锁：正在跳转时禁止再次跳转（防止自动跳转+手动点击同时触发）
+  const advancingRef = useRef(false);
+  // 待执行的自动跳转 timeout 句柄：手动点击时立即取消，避免手动+自动双重跳转
+  const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const current = questions[currentIdx];
   const total = questions.length;
@@ -34,12 +38,23 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
   }, [questions, answers]);
 
   const handleNext = useCallback(() => {
+    // 防跳题锁：如果已经在跳转中，直接返回
+    if (advancingRef.current) return;
+    advancingRef.current = true;
+    // 取消任何待执行的自动跳转（手动点击优先，避免后续自动跳转再触发一次）
+    if (autoAdvanceTimerRef.current) {
+      clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = null;
+    }
+
     if (currentIdx < total - 1) {
       setCurrentIdx((i) => i + 1);
     } else {
       setFinished(true);
       onComplete(correctCount, total);
     }
+    // 解锁：延迟 200ms 确保状态更新完成
+    setTimeout(() => { advancingRef.current = false; }, 200);
   }, [currentIdx, total, correctCount, onComplete]);
 
   // 答对后自动进入下一题（答错保持手动，让用户先看正确答案）
@@ -49,7 +64,10 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
     // 判断是否答对，答对则 1 秒后自动进入下一题
     const question = questions.find((q) => q.id === questionId);
     if (question && optionId === question.correctId) {
-      setTimeout(() => {
+      // 清掉旧的待执行定时器（防止重复答题导致多个定时器叠加）
+      if (autoAdvanceTimerRef.current) clearTimeout(autoAdvanceTimerRef.current);
+      autoAdvanceTimerRef.current = setTimeout(() => {
+        autoAdvanceTimerRef.current = null;
         handleNext();
       }, 1000);
     }

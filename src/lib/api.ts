@@ -123,6 +123,8 @@ export const api = {
     request<{ id: string }>('/sessions', { method: 'POST', body: JSON.stringify(data) }),
   updateSession: (id: string, data: SessionUpdatePayload) =>
     request<{ success: boolean }>(`/sessions/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
+  deleteSession: (id: string) =>
+    request<{ success: boolean }>(`/sessions/${id}`, { method: 'DELETE' }),
   getSessions: (page = 1, pageSize = 20) =>
     request<SessionsResponse>(`/sessions?page=${page}&pageSize=${pageSize}`),
   getSession: (id: string) => request<SessionData>(`/sessions/${id}`),
@@ -198,6 +200,9 @@ interface SessionUpdatePayload {
   learnedDone?: boolean;
   practiceDone?: boolean;
   practiceRound?: number;
+  content?: unknown;
+  sceneNameZh?: string;
+  sceneNameEn?: string;
 }
 
 interface SessionData {

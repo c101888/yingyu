@@ -44,7 +44,7 @@ function formatRelativeTime(ts: number): string {
 export default function HistoryPage() {
   const navigate = useNavigate();
   const allEntries = useHistoryStore((s) => s.entries);
-  const removeEntry = useHistoryStore((s) => s.removeEntry);
+  const removeEntryWithSync = useHistoryStore((s) => s.removeEntryWithSync);
   const clearByUser = useHistoryStore((s) => s.clearByUser);
   const clearGuest = useHistoryStore((s) => s.clearGuest);
   const restoreSession = useSessionStore((s) => s.restoreSession);
@@ -77,8 +77,9 @@ export default function HistoryPage() {
     }
   };
 
-  const handleRemove = (id: string) => {
-    removeEntry(id);
+  const handleRemove = (id: string, sceneName: string) => {
+    if (!confirm(`确定删除「${sceneName}」吗？删除后不可恢复。`)) return;
+    removeEntryWithSync(id);
     // 如果删除后当前页变空，回退一页
     const remaining = entries.length - 1;
     const newTotalPages = Math.max(1, Math.ceil(remaining / PAGE_SIZE));
@@ -250,7 +251,7 @@ export default function HistoryPage() {
                       </div>
                     </button>
                     <button
-                      onClick={() => handleRemove(entry.id)}
+                      onClick={() => handleRemove(entry.id, entry.sceneNameZh)}
                       aria-label="删除记录"
                       className="shrink-0 rounded-lg p-2 text-muted-foreground/50 transition-colors hover:bg-destructive/10 hover:text-destructive"
                     >

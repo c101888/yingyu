@@ -24,6 +24,7 @@ interface HistoryState {
   entries: HistoryEntry[];
   addEntry: (session: LearnSession, userId: string | null) => void;
   removeEntry: (id: string) => void;
+  removeEntryWithSync: (id: string) => Promise<void>;
   clearHistory: () => void;
   getEntry: (id: string) => HistoryEntry | undefined;
   // 按用户过滤（null 表示只看游客数据）
@@ -67,6 +68,18 @@ export const useHistoryStore = create<HistoryState>()(
         }),
       removeEntry: (id) =>
         set((state) => ({ entries: state.entries.filter((e) => e.id !== id) })),
+      // 从后端删除（软删除），同时删除本地记录
+      removeEntryWithSync: async (id: string) => {
+        // 先删本地
+        set((state) => ({ entries: state.entries.filter((e) => e.id !== id) }));
+        // 同步到后端（软删除）
+        try {
+          const up = await checkBackend();
+          if (up) await api.deleteSession(id);
+        } catch (err) {
+          if (isAuthError(err)) return;
+        }
+      },
       clearHistory: () => set({ entries: [] }),
       getEntry: (id) => get().entries.find((e) => e.id === id),
       getByUser: (userId) =>
@@ -116,10 +129,19 @@ export const useHistoryStore = create<HistoryState>()(
             const localExtra = state.entries.filter(
               (e) => e.userId === userId && !backendIds.has(e.id),
             );
-            const merged = [...backendEntries, ...localExtra, ...localOther]
-              .sort((a, b) => b.createdAt - a.createdAt)
-              .slice(0, MAX_HISTORY);
-            return { entries: merged };
+            let merged = [...backendEntries, ...localExtra, ...localOther]
+              .sort((a, b) => b.createdAt - a.createdAt);
+
+            // 按 sceneInput+userId 去重：同场景只保留最新一条（避免重复）
+            const seen = new Set<string>();
+            merged = merged.filter((e) => {
+              const key = `${e.sceneInput}|${e.userId}`;
+              if (seen.has(key)) return false;
+              seen.add(key);
+              return true;
+            });
+
+            return { entries: merged.slice(0, MAX_HISTORY) };
           });
         } catch (err) {
           if (isAuthError(err)) return;

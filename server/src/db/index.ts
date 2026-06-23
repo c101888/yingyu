@@ -102,6 +102,7 @@ export function getDb(): DatabaseWrapper {
 
   // 迁移：为旧数据库补充新增列（CREATE TABLE IF NOT EXISTS 不会添加新列）
   migrateUsersTable(db);
+  migrateSessionsTable(db);
 
   // 种子：如果 llm_providers 表为空且环境变量有 ARK_API_KEY，自动插入火山引擎配置
   seedLlmProviders(db);
@@ -161,6 +162,20 @@ function migrateUsersTable(db: DatabaseWrapper): void {
       } catch (err) {
         console.error(`迁移失败 ${m.col}:`, err);
       }
+    }
+  }
+}
+
+// learn_sessions 表迁移：添加 deleted 列（软删除）
+function migrateSessionsTable(db: DatabaseWrapper): void {
+  const cols = db.prepare('PRAGMA table_info(learn_sessions)').all() as Array<{ name: string }>;
+  const colNames = new Set(cols.map((c) => c.name));
+  if (!colNames.has('deleted')) {
+    try {
+      db.exec('ALTER TABLE learn_sessions ADD COLUMN deleted INTEGER NOT NULL DEFAULT 0');
+      console.log('✅ 迁移：learn_sessions 表添加列 deleted');
+    } catch (err) {
+      console.error('迁移失败 deleted:', err);
     }
   }
 }
