@@ -1,49 +1,18 @@
-// 跟读评分：基于 Web Speech API 的 SpeechRecognition 进行语音识别 + 相似度评分
-// 评分算法：Levenshtein 距离 + 词级匹配率
+// 跟读评分：语音识别 + 相似度评分
+// 原生 App（Capacitor）：使用 @capacitor-community/speech-recognition 插件（Android 系统 SpeechRecognizer）
+// Web 环境：使用 Web Speech API（webkitSpeechRecognition）
+//
+// 为什么原生不用 Web Speech API：
+// Android WebView 的 webkitSpeechRecognition 依赖 Google 语音服务，经常出现：
+//   1. start() 抛异常 → "启动识别失败"
+//   2. aborted 错误 → 权限刚授予时立即触发
+//   3. service-not-allowed → 语音服务不可用
+// 原生插件直接调用 Android SpeechRecognizer，稳定可靠。
 
-// 浏览器 SpeechRecognition 兼容性检测
-export function recognitionSupported(): boolean {
-  if (typeof window === 'undefined') return false;
-  return !!(
-    (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
-    (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
-  );
-}
+import { Capacitor } from '@capacitor/core';
+import { SpeechRecognition } from '@capacitor-community/speech-recognition';
 
-// 获取 SpeechRecognition 构造函数
-function getRecognitionCtor(): { new (): SpeechRecognitionLike } | null {
-  if (typeof window === 'undefined') return null;
-  const w = window as unknown as {
-    SpeechRecognition?: { new (): SpeechRecognitionLike };
-    webkitSpeechRecognition?: { new (): SpeechRecognitionLike };
-  };
-  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
-}
-
-// SpeechRecognition 实例的最小类型定义（浏览器 API，TS 未内置）
-interface SpeechRecognitionLike {
-  lang: string;
-  interimResults: boolean;
-  maxAlternatives: number;
-  continuous: boolean;
-  start: () => void;
-  stop: () => void;
-  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
-  onerror: ((event: SpeechRecognitionErrorLike) => void) | null;
-  onend: (() => void) | null;
-}
-
-interface SpeechRecognitionEventLike {
-  resultIndex: number;
-  results: ArrayLike<{
-    isFinal: boolean;
-    0: { transcript: string };
-  }>;
-}
-
-interface SpeechRecognitionErrorLike {
-  error: string;
-}
+// ==================== 评分算法（共用） ====================
 
 export interface RecognitionResult {
   transcript: string;       // 识别出的文本
@@ -124,6 +93,8 @@ function calculateScore(original: string, recognized: string): RecognitionResult
   };
 }
 
+// ==================== 公共接口 ====================
+
 // 识别选项
 export interface RecognizeOptions {
   lang?: string;        // 识别语言，默认 en-US
@@ -132,8 +103,142 @@ export interface RecognizeOptions {
   onEnd?: () => void;
 }
 
+// 是否支持语音识别（原生平台始终支持，Web 平台检查 Web Speech API）
+export function recognitionSupported(): boolean {
+  // 原生平台：Capacitor 插件可用
+  if (Capacitor.isNativePlatform()) return true;
+  // Web 平台：检查 Web Speech API
+  if (typeof window === 'undefined') return false;
+  return !!(
+    (window as unknown as { SpeechRecognition?: unknown }).SpeechRecognition ||
+    (window as unknown as { webkitSpeechRecognition?: unknown }).webkitSpeechRecognition
+  );
+}
+
 // 开始语音识别，返回一个可以调用的 stop 函数
 export function startRecognition(original: string, options: RecognizeOptions = {}): () => void {
+  // 原生平台：用 Capacitor 插件
+  if (Capacitor.isNativePlatform()) {
+    return startNativeRecognition(original, options);
+  }
+  // Web 平台：用 Web Speech API
+  return startWebRecognition(original, options);
+}
+
+// ==================== 原生识别（Capacitor 插件） ====================
+
+function startNativeRecognition(original: string, options: RecognizeOptions): () => void {
+  let stopped = false;
+  const lang = options.lang || 'en-US';
+
+  // 异步执行：检查可用性 → 请求权限 → 开始识别
+  (async () => {
+    try {
+      // 1. 检查设备是否支持语音识别
+      const availResult = await SpeechRecognition.available();
+      if (!availResult.available) {
+        if (!stopped) options.onError?.('设备不支持语音识别，请检查系统语音服务');
+        return;
+      }
+
+      // 2. 请求麦克风权限（原生弹窗，不依赖 WebView 权限回调）
+      const permResult = await SpeechRecognition.requestPermissions();
+      if (permResult.speechRecognition !== 'granted') {
+        if (!stopped) options.onError?.('请允许麦克风权限后重试');
+        return;
+      }
+
+      if (stopped) return;
+
+      // 3. 开始识别（popup: false 不弹系统对话框，直接录音）
+      const result = await SpeechRecognition.start({
+        language: lang,
+        maxResults: 1,
+        partialResults: false,
+        popup: false,
+      });
+
+      if (stopped) return;
+
+      // 4. 处理识别结果
+      const matches = result.matches || [];
+      if (matches.length === 0) {
+        if (!stopped) options.onError?.('没有听到声音，请再试一次');
+        return;
+      }
+
+      const transcript = matches[0];
+      const scoreResult = calculateScore(original, transcript);
+      if (!stopped) options.onResult?.(scoreResult);
+    } catch (err) {
+      if (stopped) return;
+      const errMsg = err instanceof Error ? err.message : String(err);
+      // 常见原生错误映射
+      let msg = '识别失败';
+      if (errMsg.includes('permission') || errMsg.includes('Permission')) {
+        msg = '请允许麦克风权限后重试';
+      } else if (errMsg.includes('network') || errMsg.includes('Network')) {
+        msg = '网络错误，语音识别需要网络连接';
+      } else if (errMsg.includes('no') && errMsg.includes('speech')) {
+        msg = '没有听到声音，请再试一次';
+      } else if (errMsg.includes('not') && errMsg.includes('available')) {
+        msg = '设备不支持语音识别，请检查系统语音服务';
+      } else if (errMsg.includes('busy') || errMsg.includes('listening')) {
+        msg = '语音识别正在运行，请稍后再试';
+      } else {
+        msg = `识别失败：${errMsg}`;
+      }
+      options.onError?.(msg);
+    } finally {
+      if (!stopped) options.onEnd?.();
+    }
+  })();
+
+  // 返回 stop 函数
+  return () => {
+    stopped = true;
+    SpeechRecognition.stop().catch(() => {});
+  };
+}
+
+// ==================== Web 识别（Web Speech API） ====================
+
+// SpeechRecognition 实例的最小类型定义（浏览器 API，TS 未内置）
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  continuous: boolean;
+  start: () => void;
+  stop: () => void;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorLike) => void) | null;
+  onend: (() => void) | null;
+}
+
+interface SpeechRecognitionEventLike {
+  resultIndex: number;
+  results: ArrayLike<{
+    isFinal: boolean;
+    0: { transcript: string };
+  }>;
+}
+
+interface SpeechRecognitionErrorLike {
+  error: string;
+}
+
+// 获取 Web SpeechRecognition 构造函数
+function getRecognitionCtor(): { new (): SpeechRecognitionLike } | null {
+  if (typeof window === 'undefined') return null;
+  const w = window as unknown as {
+    SpeechRecognition?: { new (): SpeechRecognitionLike };
+    webkitSpeechRecognition?: { new (): SpeechRecognitionLike };
+  };
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+}
+
+function startWebRecognition(original: string, options: RecognizeOptions): () => void {
   const Ctor = getRecognitionCtor();
   if (!Ctor) {
     options.onError?.('当前浏览器不支持语音识别，请使用 Chrome 浏览器');
@@ -167,10 +272,9 @@ export function startRecognition(original: string, options: RecognizeOptions = {
     };
 
     recognition.onerror = (event: SpeechRecognitionErrorLike) => {
-      // aborted 错误：Android WebView 权限刚授予时可能立即触发，自动重试
+      // aborted 错误：浏览器/WebView 权限刚授予时可能立即触发，自动重试
       if (event.error === 'aborted' && retryCount < maxRetries) {
         retryCount++;
-        // 延迟后重试
         setTimeout(() => {
           if (!stopped) startAttempt();
         }, 300);
@@ -181,8 +285,11 @@ export function startRecognition(original: string, options: RecognizeOptions = {
       if (event.error === 'no-speech') msg = '没有听到声音，请再试一次';
       else if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
         msg = '请允许麦克风权限后重试';
+      } else if (event.error === 'audio-capture') {
+        msg = '麦克风无法使用，请检查设备';
+      } else if (event.error === 'network') {
+        msg = '网络错误，语音识别需要网络连接';
       } else if (event.error === 'aborted') {
-        // 重试次数用完，提示用户重新点击
         msg = '识别启动失败，请再次点击跟读按钮';
       } else {
         msg = `识别失败：${event.error}`;
@@ -221,7 +328,8 @@ export function startRecognition(original: string, options: RecognizeOptions = {
   };
 }
 
-// 评分等级文案
+// ==================== 评分等级文案 ====================
+
 export function getScoreLabel(score: number): { label: string; color: string; emoji: string } {
   if (score >= 90) return { label: '太棒了！', color: 'text-primary', emoji: '🎉' };
   if (score >= 75) return { label: '很好！', color: 'text-primary', emoji: '👍' };

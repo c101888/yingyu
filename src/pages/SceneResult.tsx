@@ -25,6 +25,7 @@ import { SceneIllustration, getSceneEmoji } from '@/components/SceneIllustration
 import { SpeakButton } from '@/components/SpeakButton';
 import { useSessionStore } from '@/store/useSessionStore';
 import { useUserStore } from '@/store/useUserStore';
+import { useTierStore } from '@/store/useTierStore';
 import { generateSceneContent, enrichSceneContent } from '@/lib/llm';
 import type { EnrichMode } from '@/lib/llm';
 import { isAuthError } from '@/lib/api';
@@ -250,6 +251,11 @@ export default function SceneResult() {
       setEnrichError('请输入想要补充或调整的细节说明');
       return;
     }
+    // 丰富对话细节也计入生成次数，先检查是否有剩余额度
+    if (currentUser && !useTierStore.getState().canGenerate) {
+      setEnrichError('本月生成次数已用完，丰富对话细节同样消耗生成次数');
+      return;
+    }
     setEnriching(true);
     setEnrichError(null);
     try {
@@ -261,6 +267,15 @@ export default function SceneResult() {
         mode,
       );
       setContent(newContent);
+      // 丰富对话细节成功后，计入生成次数（和生成场景一样消耗额度）
+      if (currentUser) {
+        try {
+          await useTierStore.getState().incrGenCount();
+        } catch (err) {
+          if (isAuthError(err)) return;
+          // 计数失败不阻断流程，内容已生成
+        }
+      }
       setShowEnrichDialog(false);
       setEnrichHint('');
       // 重置互动追踪
