@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Mic, Square, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -33,8 +33,25 @@ export function RepeatButton({
   const [result, setResult] = useState<RecognitionResult | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>('');
   const stopFnRef = useRef<(() => void) | null>(null);
+  const processingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const supported = recognitionSupported();
+
+  // 卸载时清理：避免离开页面后残留识别实例
+  useEffect(() => {
+    return () => {
+      if (processingTimerRef.current) clearTimeout(processingTimerRef.current);
+      stopFnRef.current?.();
+      stopFnRef.current = null;
+    };
+  }, []);
+
+  const clearProcessingTimer = () => {
+    if (processingTimerRef.current) {
+      clearTimeout(processingTimerRef.current);
+      processingTimerRef.current = null;
+    }
+  };
 
   const handleStart = useCallback(() => {
     if (!supported) {
@@ -43,6 +60,11 @@ export function RepeatButton({
       return;
     }
 
+    // 先停止任何残留实例（自己或别的按钮的）
+    stopFnRef.current?.();
+    stopFnRef.current = null;
+    clearProcessingTimer();
+
     setStatus('recording');
     setResult(null);
     setErrorMsg('');
@@ -50,17 +72,25 @@ export function RepeatButton({
     const stop = startRecognition(text, {
       lang,
       onResult: (r) => {
+        clearProcessingTimer();
         setResult(r);
         setStatus('done');
         onScored?.(r);
       },
       onError: (msg) => {
+        clearProcessingTimer();
         setErrorMsg(msg);
         setStatus('error');
       },
       onEnd: () => {
-        // 如果没有结果且没出错，回到 idle
-        setStatus((s) => (s === 'recording' ? 'idle' : s));
+        clearProcessingTimer();
+        // 兜底：onEnd 触发但既无 onResult 也无 onError，强制回到 idle 而不是卡在 processing
+        setStatus((s) => {
+          if (s === 'recording' || s === 'processing') {
+            return 'idle';
+          }
+          return s;
+        });
       },
     });
     stopFnRef.current = stop;
@@ -70,9 +100,24 @@ export function RepeatButton({
     stopFnRef.current?.();
     stopFnRef.current = null;
     setStatus('processing');
+    // 超时保护：触发 stop 后如果 8 秒内 onResult/onError/onEnd 都没回调，强制重置
+    clearProcessingTimer();
+    processingTimerRef.current = setTimeout(() => {
+      processingTimerRef.current = null;
+      setStatus((s) => {
+        if (s === 'processing') {
+          setErrorMsg('识别超时，请再次点击跟读');
+          return 'error';
+        }
+        return s;
+      });
+    }, 8000);
   }, []);
 
   const handleReset = useCallback(() => {
+    clearProcessingTimer();
+    stopFnRef.current?.();
+    stopFnRef.current = null;
     setStatus('idle');
     setResult(null);
     setErrorMsg('');
