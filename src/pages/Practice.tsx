@@ -161,15 +161,15 @@ export default function Practice() {
                 <BookOpen className="h-4 w-4 text-primary" />
                 <span className="font-display text-sm font-bold">演练前速览：本场景重点词汇</span>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {vocab.map((v) => (
                   <div
                     key={v.word}
-                    className="flex items-center gap-1.5 rounded-full border border-border bg-card pl-2 pr-3 py-1.5"
+                    className="flex items-center justify-center gap-2 rounded-full border border-border bg-card px-3 py-2"
                   >
-                    <SpeakButton text={v.word} variant="ghost" size="icon" className="h-7 w-7 p-0 [&_svg]:size-4" />
-                    <span className="font-display text-sm font-bold">{v.word}</span>
-                    <span className="text-xs text-muted-foreground">{v.meaningZh}</span>
+                    <SpeakButton text={v.word} variant="ghost" size="icon" className="h-7 w-7 shrink-0 p-0 [&_svg]:size-4" />
+                    <span className="font-display text-sm font-bold whitespace-nowrap">{v.word}</span>
+                    <span className="text-xs whitespace-nowrap text-muted-foreground">{v.meaningZh}</span>
                   </div>
                 ))}
               </div>

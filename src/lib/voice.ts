@@ -1,4 +1,9 @@
-// Web Speech 语音服务：自动优先选择自然英文语音，失败不阻断流程
+// 语音服务：Web 环境用 Web Speech API，原生 App（Capacitor）用原生 TTS 引擎
+// Android WebView 的 speechSynthesis 不可用（语音列表空、speak 无声音），
+// 因此原生环境改用 @capacitor-community/text-to-speech 调用 Android 系统 TTS。
+
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
 
 export interface VoiceOption {
   voiceURI: string;
@@ -9,7 +14,12 @@ export interface VoiceOption {
 
 let cachedVoices: SpeechSynthesisVoice[] = [];
 
+function isNative(): boolean {
+  return Capacitor.isNativePlatform();
+}
+
 function isSpeechSupported(): boolean {
+  if (isNative()) return true;
   return typeof window !== 'undefined' && 'speechSynthesis' in window;
 }
 
@@ -20,6 +30,19 @@ export function loadVoices(): Promise<SpeechSynthesisVoice[]> {
       resolve([]);
       return;
     }
+
+    // 原生环境：用插件获取系统 TTS 语音
+    if (isNative()) {
+      TextToSpeech.getSupportedVoices()
+        .then((result) => {
+          cachedVoices = (result.voices || []) as SpeechSynthesisVoice[];
+          resolve(cachedVoices);
+        })
+        .catch(() => resolve([]));
+      return;
+    }
+
+    // Web 环境：Web Speech API
     const existing = window.speechSynthesis.getVoices();
     if (existing.length > 0) {
       cachedVoices = existing;
@@ -107,6 +130,30 @@ export function speak(text: string, opts: SpeakOptions = {}): boolean {
     opts.onend?.();
     return false;
   }
+
+  // 原生 App：用 @capacitor-community/text-to-speech 调用系统 TTS
+  if (isNative()) {
+    const voice = pickVoice();
+    let voiceIndex: number | undefined;
+    if (voice) {
+      const idx = cachedVoices.findIndex((v) => v.voiceURI === voice.voiceURI);
+      voiceIndex = idx >= 0 ? idx : undefined;
+    }
+    opts.onstart?.();
+    TextToSpeech.speak({
+      text,
+      lang: voice?.lang || 'en-US',
+      rate: opts.rate ?? 0.9,
+      pitch: opts.pitch ?? 1.05,
+      volume: 1.0,
+      voice: voiceIndex,
+    })
+      .then(() => opts.onend?.())
+      .catch(() => opts.onerror?.());
+    return true;
+  }
+
+  // Web 环境：Web Speech API
   try {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);
@@ -131,12 +178,19 @@ export function speak(text: string, opts: SpeakOptions = {}): boolean {
 }
 
 export function stopSpeaking() {
+  if (isNative()) {
+    TextToSpeech.stop().catch(() => {});
+    return;
+  }
   if (isSpeechSupported()) {
     window.speechSynthesis.cancel();
   }
 }
 
 export function isSpeaking(): boolean {
+  if (isNative()) {
+    return false; // 原生环境无法同步获取状态，靠回调维护
+  }
   return isSpeechSupported() && window.speechSynthesis.speaking;
 }
 
