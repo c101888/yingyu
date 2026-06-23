@@ -250,7 +250,9 @@ function mapNativeError(errMsg: string): string {
     return '请允许麦克风权限后重试';
   }
   if (lower.includes('not available') || lower.includes('not supported')) {
-    return '当前设备的系统语音识别不可用，请到"设置-应用-语音输入"检查';
+    // 设备上可能装了输入法语音(讯飞/百度)，但系统没装 SpeechRecognizer 服务
+    // 建议安装 Google 语音服务或华为/小米的离线语音引擎
+    return '当前设备未安装兼容的语音识别引擎，请在应用商店搜索"Google 语音服务"或安装系统语音输入包';
   }
   if (lower.includes('network')) {
     return '语音识别需要网络连接，请检查网络后重试';
@@ -348,8 +350,10 @@ function startWebRecognition(original: string, options: RecognizeOptions): () =>
     recognition.continuous = false;
 
     let finalTranscript = '';
+    let started = false; // 是否真正进入录音状态（onstart 是否触发过）
 
     recognition.onstart = () => {
+      started = true;
       if (!stopped && !finished) options.onStart?.();
     };
 
@@ -400,9 +404,23 @@ function startWebRecognition(original: string, options: RecognizeOptions): () =>
         options.onEnd?.();
         return;
       }
+
+      // 关键修复：如果 onstart 都没触发就 onend，说明启动失败（Chrome 移动端首次授权后常见问题）
+      // 自动重试一次，让用户感受不到这个 bug
+      if (!started && retryCount < maxRetries && !stopped) {
+        retryCount++;
+        console.warn('[SpeechRecognition Web] onstart 未触发就 onend，自动重试', retryCount);
+        setTimeout(() => { if (!stopped) startAttempt(); }, 400);
+        return;
+      }
+
       if (finalTranscript.trim()) {
         finishOnce(() => options.onResult?.(calculateScore(original, finalTranscript)));
+      } else if (!started) {
+        // 重试用完依然 onstart 没触发，说明浏览器/网络真的有问题
+        finishOnce(() => options.onError?.('识别启动失败，可能是网络或浏览器限制，请检查网络后重试'));
       } else {
+        // onstart 触发过但没识别到内容
         finishOnce(() => options.onError?.('没有听到声音，请大声说出英文后再次点击跟读'));
       }
       options.onEnd?.();
