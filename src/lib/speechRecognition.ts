@@ -257,26 +257,45 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
       }
 
       // 4. 启动识别
+      // 关键改动 (v2.0): 使用 partialResults:false 模式
+      // 原因: partialResults:true 在国内安卓 + 国行 Google 语音服务上经常根本不触发 partialResults 事件,
+      // 导致 accumulatedTranscript 永远为空,识别失败.
+      // partialResults:false 让系统自动检测说话结束(VAD),start() 等结束后 resolve 直接返回 matches,
+      // 这是 Android 系统输入法语音输入的标准做法,在所有设备上都可靠.
       nativeRecognitionActive = true;
       startFallbackTimer = setTimeout(() => {
         startFallbackTimer = null;
         triggerStartOnce();
-      }, 1500);
+      }, 800); // 800ms 兜底触发 onStart(让 UI 进入录音中状态)
 
       try {
         const result = await SpeechRecognition.start({
           language: lang,
           maxResults: 5,
-          partialResults: true,
+          partialResults: false, // 关键: false 让系统自动判断说话结束并返回最终 matches
           popup: false,
         });
         console.warn('[SpeechRecognition] start() resolved:', result);
         triggerStartOnce();
+
+        // partialResults:false 模式: start() resolve 时 result.matches 就是最终识别结果
         if (result && Array.isArray(result.matches) && result.matches.length > 0) {
           accumulatedTranscript = result.matches[0];
-          // partialResults:false 模式下 start() 直接返回 matches，相当于已结束
-          if (!stopRequested && !finished) {
+          console.warn('[SpeechRecognition] final transcript:', accumulatedTranscript);
+          if (!finished) {
             finishOnce(() => options.onResult?.(calculateScore(original, accumulatedTranscript)));
+          }
+        } else {
+          // 没有 matches: 系统识别完了但没听到内容
+          console.warn('[SpeechRecognition] start() resolved with no matches');
+          if (!finished) {
+            // 尝试用累积的 partialResults(如果触发过)
+            const fallback = lastPartialMatches[0] ?? '';
+            if (fallback.trim()) {
+              finishOnce(() => options.onResult?.(calculateScore(original, fallback)));
+            } else {
+              finishOnce(() => options.onError?.('没有听到清晰的英文，请靠近麦克风并大声朗读后重试'));
+            }
           }
         }
       } catch (err) {
@@ -292,23 +311,24 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
     }
   })();
 
-  // 返回 stop 函数：用户点"停止录音"时调用
-  // 关键修复：不再 await SpeechRecognition.stop()——它在 Android partialResults 模式下
-  // 经常长时间阻塞甚至不 resolve。改为 fire-and-forget + debounce 等待最后的 partialResults
+  // 返回 stop 函数：用户点"完成"时调用
+  // partialResults:false 模式下: stop() 让系统提前结束录音并 finalize,
+  // 上面的 await SpeechRecognition.start() 会随后 resolve 并直接走到 result.matches 处理逻辑.
+  // 因此这里只需要触发 stop(),不再需要 debounce 等待事件.
   return () => {
     if (stopped) return;
     stopped = true;
     stopRequested = true;
     console.warn('[SpeechRecognition] user requested stop');
 
-    // 立即 fire-and-forget 调用插件 stop，不阻塞
+    // fire-and-forget stop:不阻塞调用方
     SpeechRecognition.stop().catch((err) => {
       console.warn('[SpeechRecognition] stop() error (non-blocking):', err);
     });
 
-    // 最长等待 2.5 秒收集最终的 partialResults / listeningState=stopped
-    // 期间任何新的 partialResults 会通过监听器把这个计时器重置为 500ms debounce
-    scheduleFinalize(2500);
+    // 兜底:如果 4 秒内 start() Promise 还没 resolve(系统未正确 finalize),
+    // 强制走 finalize 用累积内容评分
+    scheduleFinalize(4000);
   };
 }
 
