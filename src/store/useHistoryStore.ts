@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { LearnSession, Difficulty } from '@/lib/types';
+import { api, checkBackend, isAuthError } from '@/lib/api';
 
 // 历史记录中保存的精简信息（用于列表展示 + 恢复）
 export interface HistoryEntry {
@@ -31,6 +32,8 @@ interface HistoryState {
   clearByUser: (userId: string) => void;
   // 清空游客数据
   clearGuest: () => void;
+  // 从后端数据库加载历史记录（登录用户跨设备同步）
+  loadFromBackend: (userId: string) => Promise<void>;
 }
 
 // 上限放大到 200，配合历史记录页分页（每页 20 条，最多 10 页）
@@ -76,6 +79,53 @@ export const useHistoryStore = create<HistoryState>()(
         set((state) => ({
           entries: state.entries.filter((e) => e.userId !== null),
         })),
+      loadFromBackend: async (userId: string) => {
+        try {
+          const up = await checkBackend();
+          if (!up) return;
+          const data = await api.getSessions(1, 100);
+          // 将后端 sessions 转换为 HistoryEntry 格式，合并到本地（去重）
+          const backendEntries: HistoryEntry[] = data.sessions.map((s: any) => ({
+            id: s.id,
+            userId,
+            sceneInput: s.scene_input || '',
+            sceneNameZh: s.scene_name_zh || '',
+            sceneNameEn: s.scene_name_en || '',
+            source: s.source || 'input',
+            difficulty: s.difficulty || 'easy',
+            learnedDone: !!s.learnedDone,
+            practiceDone: !!s.practiceDone,
+            createdAt: s.created_at || Date.now(),
+            session: {
+              id: s.id,
+              sceneInput: s.scene_input || '',
+              source: s.source || 'input',
+              difficulty: s.difficulty || 'easy',
+              content: s.content,
+              mastery: null,
+              learnedDone: !!s.learnedDone,
+              practiceRound: s.practice_round || 0,
+              practiceDone: !!s.practiceDone,
+              createdAt: s.created_at || Date.now(),
+            } as LearnSession,
+          }));
+          set((state) => {
+            // 合并：后端记录 + 本地非该用户的记录 + 本地该用户中后端没有的记录
+            const backendIds = new Set(backendEntries.map((e) => e.id));
+            const localOther = state.entries.filter((e) => e.userId !== userId);
+            const localExtra = state.entries.filter(
+              (e) => e.userId === userId && !backendIds.has(e.id),
+            );
+            const merged = [...backendEntries, ...localExtra, ...localOther]
+              .sort((a, b) => b.createdAt - a.createdAt)
+              .slice(0, MAX_HISTORY);
+            return { entries: merged };
+          });
+        } catch (err) {
+          if (isAuthError(err)) return;
+          // 静默忽略网络错误
+        }
+      },
     }),
     {
       name: 'family-eng-history',

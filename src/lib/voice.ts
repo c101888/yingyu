@@ -133,27 +133,58 @@ export function speak(text: string, opts: SpeakOptions = {}): boolean {
 
   // 原生 App：用 @capacitor-community/text-to-speech 调用系统 TTS
   if (isNative()) {
-    const voice = pickVoice();
-    let voiceIndex: number | undefined;
-    if (voice) {
-      const idx = cachedVoices.findIndex((v) => v.voiceURI === voice.voiceURI);
-      voiceIndex = idx >= 0 ? idx : undefined;
-    }
-    opts.onstart?.();
-    TextToSpeech.speak({
-      text,
-      lang: voice?.lang || 'en-US',
-      rate: opts.rate ?? 0.9,
-      pitch: opts.pitch ?? 1.05,
-      volume: 1.0,
-      voice: voiceIndex,
-    })
-      .then(() => opts.onend?.())
-      .catch(() => opts.onerror?.());
+    doNativeSpeak(text, opts);
     return true;
   }
 
   // Web 环境：Web Speech API
+  return doWebSpeak(text, opts);
+}
+
+// 原生 TTS 朗读：带重试机制（TTS 引擎初始化是异步的，首次调用可能未就绪）
+async function doNativeSpeak(text: string, opts: SpeakOptions) {
+  const voice = pickVoice();
+  let voiceIndex: number | undefined;
+  if (voice) {
+    const idx = cachedVoices.findIndex((v) => v.voiceURI === voice.voiceURI);
+    voiceIndex = idx >= 0 ? idx : undefined;
+  }
+
+  const speakOptions = {
+    text,
+    lang: voice?.lang || 'en-US',
+    rate: opts.rate ?? 0.9,
+    pitch: opts.pitch ?? 1.05,
+    volume: 1.0,
+    voice: voiceIndex,
+  };
+
+  // 最多重试 3 次，每次间隔 500ms（等待 TTS 引擎初始化完成）
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      if (attempt === 0) opts.onstart?.();
+      await TextToSpeech.speak(speakOptions);
+      opts.onend?.();
+      return;
+    } catch (err) {
+      // TTS 引擎未初始化时返回 "Not yet initialized"，等待后重试
+      if (attempt < 2) {
+        await new Promise((r) => setTimeout(r, 500));
+        continue;
+      }
+      // 重试失败：尝试回退到 Web Speech API（Android WebView 可能部分支持）
+      if (doWebSpeak(text, opts)) return;
+      opts.onerror?.();
+    }
+  }
+}
+
+// Web Speech API 朗读
+function doWebSpeak(text: string, opts: SpeakOptions): boolean {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    opts.onend?.();
+    return false;
+  }
   try {
     window.speechSynthesis.cancel();
     const utter = new SpeechSynthesisUtterance(text);

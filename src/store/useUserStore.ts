@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { api, setToken, clearToken, checkBackend, setOnUnauthorized, isAuthError } from '@/lib/api';
 import type { Tier } from '@/lib/tiers';
+import { useHistoryStore } from './useHistoryStore';
 
 export interface LocalUser {
   id: string;
@@ -103,6 +104,8 @@ export const useUserStore = create<UserState>()(
               lastLoginAt: Date.now(),
             };
             set({ currentUser: localUser, guestUsageCount: 0, loading: false });
+            // 登录成功后从数据库加载历史记录（跨设备同步）
+            useHistoryStore.getState().loadFromBackend(localUser.id);
             return localUser;
           }
           throw new Error('后台服务未启动，无法登录。请先启动后台服务（server 目录）');
@@ -135,6 +138,8 @@ export const useUserStore = create<UserState>()(
             lastLoginAt: user.lastLoginAt,
           };
           set({ currentUser: localUser });
+          // 刷新时也同步历史记录（App 启动时跨设备同步）
+          useHistoryStore.getState().loadFromBackend(localUser.id);
         } catch (err) {
           // token 过期或无效：onUnauthorized 回调已清除 currentUser，静默处理
           if (isAuthError(err)) {

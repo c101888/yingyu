@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { LearnSession, SceneContent, Mastery, SceneSource, Difficulty } from '@/lib/types';
 import { useHistoryStore } from './useHistoryStore';
 import { useUserStore } from './useUserStore';
+import { api, checkBackend, isAuthError } from '@/lib/api';
 
 interface SessionState {
   session: LearnSession | null;
@@ -32,6 +33,45 @@ function getCurrentUserId(): string | null {
   return u ? u.id : null;
 }
 
+// 同步 session 到后端数据库（登录用户才同步，游客跳过）
+function syncSessionToBackend(session: LearnSession) {
+  const user = useUserStore.getState().currentUser;
+  if (!user) return; // 游客不同步
+
+  checkBackend().then((up) => {
+    if (!up) return;
+    // 先尝试创建，如果已存在则更新
+    api.createSession({
+      sceneInput: session.sceneInput,
+      sceneNameZh: session.content.sceneNameZh,
+      sceneNameEn: session.content.sceneNameEn,
+      source: session.source,
+      difficulty: session.difficulty || 'easy',
+      content: session.content,
+    })
+      .then(() => {
+        // 创建成功后更新学习/演练状态
+        if (session.learnedDone || session.practiceDone) {
+          return api.updateSession(session.id, {
+            learnedDone: session.learnedDone,
+            practiceDone: session.practiceDone,
+            practiceRound: session.practiceRound,
+          });
+        }
+      })
+      .catch((err) => {
+        // 已存在（重复创建）或认证错误，静默处理
+        if (isAuthError(err)) return;
+        // 尝试更新已有 session
+        api.updateSession(session.id, {
+          learnedDone: session.learnedDone,
+          practiceDone: session.practiceDone,
+          practiceRound: session.practiceRound,
+        }).catch(() => {});
+      });
+  }).catch(() => {});
+}
+
 export const useSessionStore = create<SessionState>()(
   persist(
     (set) => ({
@@ -53,6 +93,8 @@ export const useSessionStore = create<SessionState>()(
           };
           // 同时写入历史记录（按当前用户隔离；游客模式 userId=null，登录后不可见）
           useHistoryStore.getState().addEntry(session, getCurrentUserId());
+          // 异步同步到后端数据库（登录用户跨设备可见）
+          syncSessionToBackend(session);
           return { session };
         }),
       setContent: (content) =>
@@ -65,6 +107,7 @@ export const useSessionStore = create<SessionState>()(
           if (!s.session) return s;
           const updated = { ...s.session, learnedDone: true };
           useHistoryStore.getState().addEntry(updated, getCurrentUserId());
+          syncSessionToBackend(updated);
           return { session: updated };
         }),
       setPracticeRound: (round) =>
@@ -74,6 +117,7 @@ export const useSessionStore = create<SessionState>()(
           if (!s.session) return s;
           const updated = { ...s.session, practiceDone: true };
           useHistoryStore.getState().addEntry(updated, getCurrentUserId());
+          syncSessionToBackend(updated);
           return { session: updated };
         }),
       resetPractice: () =>

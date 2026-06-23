@@ -13,6 +13,7 @@ import Rewards from "@/pages/Rewards";
 import LearnCenter from "@/pages/LearnCenter";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useUserStore } from "@/store/useUserStore";
+import { loadVoices } from "@/lib/voice";
 
 export default function App() {
   const currentUser = useUserStore((s) => s.currentUser);
@@ -21,6 +22,8 @@ export default function App() {
   // 应用启动时：如果有登录用户，验证 token 是否仍然有效
   // token 过期会清除 currentUser，避免"登录已过期"错误在操作时才暴露
   useEffect(() => {
+    // 预初始化 TTS 引擎（原生 App 中 Android TTS 初始化是异步的，提前触发避免首次播放失败）
+    loadVoices().catch(() => {});
     if (currentUser) {
       refreshMe();
     }
