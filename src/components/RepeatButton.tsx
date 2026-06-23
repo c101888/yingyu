@@ -18,7 +18,7 @@ interface RepeatButtonProps {
   onScored?: (result: RecognitionResult) => void;  // 评分完成回调
 }
 
-type Status = 'idle' | 'recording' | 'processing' | 'done' | 'error';
+type Status = 'idle' | 'preparing' | 'recording' | 'processing' | 'done' | 'error';
 
 // 跟读按钮：录音 → 语音识别 → 评分
 export function RepeatButton({
@@ -65,12 +65,16 @@ export function RepeatButton({
     stopFnRef.current = null;
     clearProcessingTimer();
 
-    setStatus('recording');
+    setStatus('preparing');
     setResult(null);
     setErrorMsg('');
 
     const stop = startRecognition(text, {
       lang,
+      onStart: () => {
+        // 录音真正开始（原生平台收到 listeningState=started，或 Web 收到 onstart）
+        setStatus((s) => (s === 'preparing' ? 'recording' : s));
+      },
       onResult: (r) => {
         clearProcessingTimer();
         setResult(r);
@@ -84,9 +88,9 @@ export function RepeatButton({
       },
       onEnd: () => {
         clearProcessingTimer();
-        // 兜底：onEnd 触发但既无 onResult 也无 onError，强制回到 idle 而不是卡在 processing
+        // 兜底：onEnd 触发但既无 onResult 也无 onError，强制回到 idle 而不是卡在 preparing/processing
         setStatus((s) => {
-          if (s === 'recording' || s === 'processing') {
+          if (s === 'preparing' || s === 'recording' || s === 'processing') {
             return 'idle';
           }
           return s;
@@ -171,6 +175,16 @@ export function RepeatButton({
           重试
         </Button>
       </div>
+    );
+  }
+
+  // 准备中：已点击但录音还没真正开始（原生权限弹窗/插件初始化）
+  if (status === 'preparing') {
+    return (
+      <Button type="button" variant="soft" size={size} disabled className={cn('gap-1.5', className)}>
+        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+        {size !== 'icon' && <span>准备录音…</span>}
+      </Button>
     );
   }
 
