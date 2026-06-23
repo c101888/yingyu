@@ -106,17 +106,20 @@ export function startRecognition(original: string, options: RecognizeOptions = {
 // ==================== 原生识别（Capacitor 插件） ====================
 
 let nativeRecognitionActive = false; // 全局活动锁
+let nativeLastStopTime = 0;          // 上一次 stop 的时间戳，用于防止过快重启
 
 function startNativeRecognition(original: string, options: RecognizeOptions): () => void {
   const lang = options.lang || 'en-US';
   let stopped = false;
   let finished = false;
   let started = false; // 是否已经回调过 onStart
+  let stopRequested = false; // 用户已点击停止
   let listeningHandle: PluginListenerHandle | null = null;
   let partialHandle: PluginListenerHandle | null = null;
   let accumulatedTranscript = '';
   let lastPartialMatches: string[] = [];
   let startFallbackTimer: ReturnType<typeof setTimeout> | null = null;
+  let finalizeTimer: ReturnType<typeof setTimeout> | null = null;
 
   const triggerStartOnce = () => {
     if (started || stopped || finished) return;
@@ -133,11 +136,16 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
       clearTimeout(startFallbackTimer);
       startFallbackTimer = null;
     }
+    if (finalizeTimer) {
+      clearTimeout(finalizeTimer);
+      finalizeTimer = null;
+    }
     try { await listeningHandle?.remove(); } catch {}
     try { await partialHandle?.remove(); } catch {}
     listeningHandle = null;
     partialHandle = null;
     nativeRecognitionActive = false;
+    nativeLastStopTime = Date.now();
   };
 
   const finishOnce = (cb: () => void) => {
@@ -148,12 +156,48 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
     void cleanup();
   };
 
+  // 关键：用累积的识别结果评分
+  // 在用户点停止后，可能还有 1-2 个 partialResults 事件到来（系统的最终回调），
+  // 所以用 debounce：每来一个 partialResults 就重置 500ms 计时器，500ms 没新事件即定稿
+  const finalizeScoring = () => {
+    if (finished) return;
+    if (finalizeTimer) {
+      clearTimeout(finalizeTimer);
+      finalizeTimer = null;
+    }
+    const transcript = accumulatedTranscript || (lastPartialMatches[0] ?? '');
+    console.warn('[SpeechRecognition] finalize transcript:', transcript);
+    if (transcript.trim()) {
+      const scored = calculateScore(original, transcript);
+      finishOnce(() => options.onResult?.(scored));
+    } else {
+      finishOnce(() => options.onError?.('没有听到清晰的英文，请靠近麦克风并大声朗读后重试'));
+    }
+  };
+
+  const scheduleFinalize = (delay: number) => {
+    if (finished) return;
+    if (finalizeTimer) clearTimeout(finalizeTimer);
+    finalizeTimer = setTimeout(() => {
+      finalizeTimer = null;
+      finalizeScoring();
+    }, delay);
+  };
+
   (async () => {
     try {
-      // 如果有残留识别在跑，先停掉
+      // 如果有残留识别在跑，先停掉并等待释放
       if (nativeRecognitionActive) {
         try { await SpeechRecognition.stop(); } catch {}
         nativeRecognitionActive = false;
+        await new Promise(r => setTimeout(r, 300));
+      } else {
+        // 即使没有活动识别，距上次 stop 不足 400ms 也强制等一下
+        // 因为 SpeechRecognizer 释放底层资源需要时间
+        const sinceLastStop = Date.now() - nativeLastStopTime;
+        if (nativeLastStopTime > 0 && sinceLastStop < 400) {
+          await new Promise(r => setTimeout(r, 400 - sinceLastStop));
+        }
       }
 
       // 1. 检查/请求权限
@@ -168,7 +212,7 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
 
       if (stopped) return;
 
-      // 2. 注册 listeningState 事件 —— 仅用于日志和兜底（不依赖它切换 UI 状态）
+      // 2. listeningState 事件
       try {
         listeningHandle = await SpeechRecognition.addListener(
           'listeningState',
@@ -176,6 +220,9 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
             console.warn('[SpeechRecognition] listeningState:', data.status);
             if (data.status === 'started') {
               triggerStartOnce();
+            } else if (data.status === 'stopped' && stopRequested && !finished) {
+              // 系统已确认停止，快速定稿（300ms 给最后一个 partialResults 留时间）
+              scheduleFinalize(300);
             }
           },
         );
@@ -183,16 +230,20 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
         console.warn('[SpeechRecognition] addListener listeningState 失败', err);
       }
 
-      // 3. 注册 partialResults 事件 —— 累积识别结果
+      // 3. partialResults 事件
       try {
         partialHandle = await SpeechRecognition.addListener(
           'partialResults',
           (data: { matches: string[] }) => {
             console.warn('[SpeechRecognition] partialResults:', data.matches);
-            // 收到 partialResults 说明录音肯定开始了，兜底触发 onStart
             triggerStartOnce();
             if (data.matches && data.matches.length > 0) {
               lastPartialMatches = data.matches;
+            }
+            // 用户已点停止：每个新 partialResults 都重置 debounce 计时器
+            // 500ms 内没有新事件就认为是最终结果
+            if (stopRequested && !finished) {
+              scheduleFinalize(500);
             }
           },
         );
@@ -206,13 +257,7 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
       }
 
       // 4. 启动识别
-      // 关键修复：partialResults:true 模式下 start() 调用后立即 resolve，
-      // 此时录音几乎已开始（onReadyForSpeech 事件触发只是时间问题）。
-      // 不再等待 listeningState 事件——它在国内安卓上可能延迟数秒甚至不触发。
       nativeRecognitionActive = true;
-
-      // 兜底 1: 1.5 秒还没收到 listeningState=started，主动触发 onStart
-      // 因为 start() 在 partialResults:true 下其实是立即 resolve 的，但 await 前后状态可能错乱
       startFallbackTimer = setTimeout(() => {
         startFallbackTimer = null;
         triggerStartOnce();
@@ -226,13 +271,13 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
           popup: false,
         });
         console.warn('[SpeechRecognition] start() resolved:', result);
-
-        // start() resolve 即视为录音已启动（partialResults:true 模式下保证立即 resolve）
         triggerStartOnce();
-
-        // 某些实现 start() 也可能直接返回 matches（partialResults:false 时）
         if (result && Array.isArray(result.matches) && result.matches.length > 0) {
           accumulatedTranscript = result.matches[0];
+          // partialResults:false 模式下 start() 直接返回 matches，相当于已结束
+          if (!stopRequested && !finished) {
+            finishOnce(() => options.onResult?.(calculateScore(original, accumulatedTranscript)));
+          }
         }
       } catch (err) {
         nativeRecognitionActive = false;
@@ -248,29 +293,22 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
   })();
 
   // 返回 stop 函数：用户点"停止录音"时调用
+  // 关键修复：不再 await SpeechRecognition.stop()——它在 Android partialResults 模式下
+  // 经常长时间阻塞甚至不 resolve。改为 fire-and-forget + debounce 等待最后的 partialResults
   return () => {
     if (stopped) return;
     stopped = true;
-    void (async () => {
-      try {
-        await SpeechRecognition.stop();
-      } catch (err) {
-        console.warn('[SpeechRecognition] stop() error:', err);
-      }
-      nativeRecognitionActive = false;
+    stopRequested = true;
+    console.warn('[SpeechRecognition] user requested stop');
 
-      if (finished) return;
+    // 立即 fire-and-forget 调用插件 stop，不阻塞
+    SpeechRecognition.stop().catch((err) => {
+      console.warn('[SpeechRecognition] stop() error (non-blocking):', err);
+    });
 
-      // 用累积的 partialResults 或 start() 返回的 transcript 评分
-      const transcript = accumulatedTranscript || (lastPartialMatches[0] ?? '');
-      console.warn('[SpeechRecognition] final transcript:', transcript);
-      if (transcript.trim()) {
-        const scored = calculateScore(original, transcript);
-        finishOnce(() => options.onResult?.(scored));
-      } else {
-        finishOnce(() => options.onError?.('没有听到清晰的英文，请靠近麦克风并大声朗读后重试'));
-      }
-    })();
+    // 最长等待 2.5 秒收集最终的 partialResults / listeningState=stopped
+    // 期间任何新的 partialResults 会通过监听器把这个计时器重置为 500ms debounce
+    scheduleFinalize(2500);
   };
 }
 
