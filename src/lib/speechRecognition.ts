@@ -114,6 +114,7 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
   let finished = false;
   let started = false; // 是否已经回调过 onStart
   let stopRequested = false; // 用户已点击停止
+  let noMatchRetried = false; // ERROR_NO_MATCH 是否已自动重试过
   let listeningHandle: PluginListenerHandle | null = null;
   let partialHandle: PluginListenerHandle | null = null;
   let accumulatedTranscript = '';
@@ -257,51 +258,93 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
       }
 
       // 4. 启动识别
-      // 关键改动 (v2.0): 使用 partialResults:false 模式
-      // 原因: partialResults:true 在国内安卓 + 国行 Google 语音服务上经常根本不触发 partialResults 事件,
-      // 导致 accumulatedTranscript 永远为空,识别失败.
-      // partialResults:false 让系统自动检测说话结束(VAD),start() 等结束后 resolve 直接返回 matches,
-      // 这是 Android 系统输入法语音输入的标准做法,在所有设备上都可靠.
+      // 架构决策 (v2.1):
+      // - 改回 partialResults:true,因为 partialResults:false 模式下 Android 系统的
+      //   SpeechRecognizer 沉默检测非常激进(用户没立即说话 ~500ms 就直接 ERROR_NO_MATCH).
+      // - partialResults:true 模式 start() 立即 resolve,用户有充足时间开口说话.
+      // - 即使 partialResults 事件在某些设备不触发,也可以通过 stop() 后系统返回的最终
+      //   结果或事件兜底.
+      // - 加入自动重试: ERROR_NO_MATCH 时自动重试 1 次,因为这通常是用户还没来得及说话.
       nativeRecognitionActive = true;
       startFallbackTimer = setTimeout(() => {
         startFallbackTimer = null;
         triggerStartOnce();
-      }, 800); // 800ms 兜底触发 onStart(让 UI 进入录音中状态)
+      }, 800);
 
       try {
         const result = await SpeechRecognition.start({
           language: lang,
           maxResults: 5,
-          partialResults: false, // 关键: false 让系统自动判断说话结束并返回最终 matches
+          partialResults: true, // 让用户有充足时间开口,避免立即 NO_MATCH
           popup: false,
         });
         console.warn('[SpeechRecognition] start() resolved:', result);
         triggerStartOnce();
 
-        // partialResults:false 模式: start() resolve 时 result.matches 就是最终识别结果
+        // partialResults:true 模式: start() 立即 resolve 无 matches,识别通过事件流
+        // 但某些设备(如华为)即使 partialResults:true 也会在结束时返回 matches
         if (result && Array.isArray(result.matches) && result.matches.length > 0) {
           accumulatedTranscript = result.matches[0];
-          console.warn('[SpeechRecognition] final transcript:', accumulatedTranscript);
-          if (!finished) {
+          console.warn('[SpeechRecognition] start() returned matches:', accumulatedTranscript);
+          if (!stopRequested && !finished) {
             finishOnce(() => options.onResult?.(calculateScore(original, accumulatedTranscript)));
-          }
-        } else {
-          // 没有 matches: 系统识别完了但没听到内容
-          console.warn('[SpeechRecognition] start() resolved with no matches');
-          if (!finished) {
-            // 尝试用累积的 partialResults(如果触发过)
-            const fallback = lastPartialMatches[0] ?? '';
-            if (fallback.trim()) {
-              finishOnce(() => options.onResult?.(calculateScore(original, fallback)));
-            } else {
-              finishOnce(() => options.onError?.('没有听到清晰的英文，请靠近麦克风并大声朗读后重试'));
-            }
           }
         }
       } catch (err) {
         nativeRecognitionActive = false;
         const errMsg = err instanceof Error ? err.message : String(err);
         console.warn('[SpeechRecognition] start() rejected:', errMsg);
+
+        // ERROR_NO_MATCH / didn't understand: 用户还没来得及说话就被系统超时
+        // 这是 Android SpeechRecognizer 已知问题,自动重试一次给用户更多反应时间
+        const lower = errMsg.toLowerCase();
+        const isNoMatch =
+          lower.includes("didn't understand") ||
+          lower.includes('didnt understand') ||
+          lower.includes('no match') ||
+          lower.includes('no_match');
+        if (isNoMatch && !noMatchRetried && !stopped && !finished) {
+          noMatchRetried = true;
+          console.warn('[SpeechRecognition] NO_MATCH 自动重试 1 次');
+          // 短暂延迟让系统资源释放
+          await new Promise((r) => setTimeout(r, 300));
+          nativeRecognitionActive = false;
+          // 重新启动一次
+          startFallbackTimer = setTimeout(() => {
+            startFallbackTimer = null;
+            triggerStartOnce();
+          }, 800);
+          nativeRecognitionActive = true;
+          try {
+            const result2 = await SpeechRecognition.start({
+              language: lang,
+              maxResults: 5,
+              partialResults: true,
+              popup: false,
+            });
+            console.warn('[SpeechRecognition] retry start() resolved:', result2);
+            triggerStartOnce();
+            if (result2 && Array.isArray(result2.matches) && result2.matches.length > 0) {
+              accumulatedTranscript = result2.matches[0];
+              if (!stopRequested && !finished) {
+                finishOnce(() =>
+                  options.onResult?.(calculateScore(original, accumulatedTranscript)),
+                );
+              }
+            }
+          } catch (err2) {
+            nativeRecognitionActive = false;
+            const errMsg2 = err2 instanceof Error ? err2.message : String(err2);
+            console.warn('[SpeechRecognition] retry start() rejected:', errMsg2);
+            finishOnce(() =>
+              options.onError?.(
+                '请在看到"录音中"后立即朗读英文,不要停顿。可再次点击跟读重试',
+              ),
+            );
+          }
+          return;
+        }
+
         finishOnce(() => options.onError?.(mapNativeError(errMsg)));
       }
     } catch (err) {
@@ -338,8 +381,6 @@ function mapNativeError(errMsg: string): string {
     return '请允许麦克风权限后重试';
   }
   if (lower.includes('not available') || lower.includes('not supported')) {
-    // 设备上可能装了输入法语音(讯飞/百度)，但系统没装 SpeechRecognizer 服务
-    // 建议安装 Google 语音服务或华为/小米的离线语音引擎
     return '当前设备未安装兼容的语音识别引擎，请在应用商店搜索"Google 语音服务"或安装系统语音输入包';
   }
   if (lower.includes('network')) {
@@ -348,8 +389,15 @@ function mapNativeError(errMsg: string): string {
   if (lower.includes('busy') || lower.includes('already')) {
     return '语音识别正在运行，请稍后再试';
   }
-  if (lower.includes('no match') || lower.includes('no speech')) {
-    return '没有听到清晰的英文，请靠近麦克风并大声朗读后重试';
+  if (
+    lower.includes('no match') ||
+    lower.includes('no_match') ||
+    lower.includes('no speech') ||
+    lower.includes("didn't understand") ||
+    lower.includes('didnt understand')
+  ) {
+    // Android SpeechRecognizer 的"沉默检测"非常激进,用户没立即开口就报这个
+    return '请点击跟读后立即朗读英文(不要停顿),再次点击重试';
   }
   if (lower.includes('cancel') || lower.includes('abort')) {
     return '识别被取消，请重新点击跟读';
