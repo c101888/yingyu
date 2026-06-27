@@ -1,5 +1,5 @@
 // 会员等级体系配置
-// free: 免费用户，3 次/月场景生成（按月恢复，不累计）
+// free: 免费用户，2 次/月场景生成（按月恢复，不累计）
 // plus: 升级用户，90 次/月，每日路线最多 3 条
 // pro: 高级用户，150 次/月，每日路线最多 5 条，丰富对话细节 + 积分兑换奖励
 
@@ -35,7 +35,7 @@ export const TIER_CONFIGS: Record<Tier, TierConfig> = {
     nameEn: 'Free',
     badge: '🆓',
     color: 'text-gray-600',
-    monthlyGenLimit: 3,
+    monthlyGenLimit: 2,
     totalGenLimit: 0,
     maxRoutes: 2,
     canEnrichDialogue: false,
@@ -45,7 +45,7 @@ export const TIER_CONFIGS: Record<Tier, TierConfig> = {
     priceMonthly: 0,
     priceYearly: 0,
     benefits: [
-      '场景生成 3 次/月（按月恢复，不累计）',
+      '场景生成 2 次/月（按月恢复，不累计）',
       '每日路线 2 条预置（上学日 + 周末）',
       '完整学习闭环（学习 + 测验 + 演练）',
       '积分与等级系统',

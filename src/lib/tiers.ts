@@ -30,7 +30,7 @@ export const TIER_CONFIGS: Record<Tier, TierConfig> = {
     badge: '🆓',
     color: 'text-gray-600',
     gradient: 'from-gray-50 to-gray-100',
-    monthlyGenLimit: 3,
+    monthlyGenLimit: 2,
     totalGenLimit: 0,
     maxRoutes: 2,
     canEnrichDialogue: false,
@@ -40,7 +40,7 @@ export const TIER_CONFIGS: Record<Tier, TierConfig> = {
     priceMonthly: 0,
     priceYearly: 0,
     benefits: [
-      '场景生成 3 次/月（按月恢复）',
+      '场景生成 2 次/月（按月恢复）',
       '每日路线 2 条预置',
       '完整学习闭环',
       '积分与等级系统',

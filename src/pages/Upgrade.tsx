@@ -286,7 +286,7 @@ export default function Upgrade() {
                 </thead>
                 <tbody>
                   {[
-                    { label: '场景生成', free: '6 次终身', plus: '90 次/月', pro: '150 次/月' },
+                    { label: '场景生成', free: '2 次/月', plus: '90 次/月', pro: '150 次/月' },
                     { label: '每日路线', free: '2 条预置', plus: '最多 3 条', pro: '最多 5 条' },
                     { label: '编辑/新建路线', free: '—', plus: '✓', pro: '✓' },
                     { label: '丰富对话细节', free: '—', plus: '—', pro: '✓' },
@@ -340,7 +340,7 @@ export default function Upgrade() {
             <CardContent className="p-4 sm:p-5">
               <h4 className="mb-2 font-semibold">次数用完了怎么办？</h4>
               <p className="text-sm text-muted-foreground">
-                免费用户终身 6 次，用完需升级。Plus/Pro 用户每月 1 号重置次数，未用完的次数不累积。
+                免费用户每月 2 次，用完需升级或等下月重置。Plus/Pro 用户每月 1 号重置次数，未用完的次数不累积。
               </p>
             </CardContent>
           </Card>
