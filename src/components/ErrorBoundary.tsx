@@ -27,10 +27,14 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   handleReset = () => {
-    // 清除可能损坏的本地数据，再刷新页面
+    // 清除所有持久化的本地数据，再刷新页面
+    // 必须全部清除，否则损坏的 store 数据会导致崩溃循环
     try {
       localStorage.removeItem('family-eng-session');
       localStorage.removeItem('family-eng-route');
+      localStorage.removeItem('family-eng-user');
+      localStorage.removeItem('family-eng-points');
+      localStorage.removeItem('family-eng-history');
     } catch {
       // 忽略
     }

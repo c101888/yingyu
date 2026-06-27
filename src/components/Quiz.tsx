@@ -243,8 +243,9 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
           )}
 
           {current.type === 'word_order' && (
-            // 单词排序题
+            // 单词排序题（key 绑定题目 id，题目切换时强制重挂载，重置内部 arranged 状态）
             <WordOrderQuestion
+              key={current.id}
               question={current}
               showResult={currentShowResult}
               onAnswer={(optId) => handleAnswer(current.id, optId)}
@@ -265,8 +266,9 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
           )}
 
           {current.type === 'spell_word' && (
-            // 字母拼写题
+            // 字母拼写题（key 绑定题目 id，题目切换时强制重挂载，重置内部 inputs 状态）
             <SpellWordQuestion
+              key={current.id}
               question={current}
               hasPlayed={hasPlayed}
               onPlayed={() => handleMarkPlayed(current.id)}

@@ -215,8 +215,8 @@ export default function SceneResult() {
     setRegenerating(true);
     setRegenError(null);
     try {
-      // 重新生成时沿用当前会话的难度
-      const newContent = await generateSceneContent(session.sceneInput, session.difficulty || 'easy');
+      // 重新生成时沿用当前会话的难度，skipCache=true 强制重新调用 LLM（否则会命中缓存返回相同内容）
+      const newContent = await generateSceneContent(session.sceneInput, session.difficulty || 'easy', true);
       setContent(newContent);
       // 重置互动追踪
       setListenedWords(new Set());

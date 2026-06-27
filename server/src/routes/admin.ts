@@ -85,7 +85,7 @@ router.patch('/users/:id', (req: AuthRequest, res: Response) => {
 });
 
 // 修改用户密码
-router.patch('/users/:id/password', (req: AuthRequest, res: Response) => {
+router.patch('/users/:id/password', async (req: AuthRequest, res: Response) => {
   try {
     const { newPassword } = req.body;
     if (!newPassword || newPassword.length < 6) {
@@ -93,11 +93,10 @@ router.patch('/users/:id/password', (req: AuthRequest, res: Response) => {
       return;
     }
     const db = getDb();
-    hashPassword(newPassword).then(hash => {
-      db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?')
-        .run(hash, Date.now(), req.params.id);
-      res.json({ success: true });
-    });
+    const hash = await hashPassword(newPassword);
+    db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?')
+      .run(hash, Date.now(), req.params.id);
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: '修改密码失败', detail: (err as Error).message });
   }

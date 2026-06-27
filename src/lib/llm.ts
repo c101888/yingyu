@@ -235,26 +235,30 @@ async function callLLM(sceneInput: string, difficulty: Difficulty): Promise<Scen
 
 // 调用 LLM 生成场景英语内容（含重试，失败抛错由调用方处理）
 // 优先查询场景缓存（所有用户共享，归一化匹配），命中则直接返回；未命中则调用 LLM 并写入缓存
+// skipCache=true 时跳过缓存查询，强制重新生成（用于"重新生成"按钮）
 export async function generateSceneContent(
   sceneInput: string,
   difficulty: Difficulty = 'easy',
+  skipCache = false,
 ): Promise<SceneContent> {
-  // 1. 尝试命中缓存（后台可用时）
-  try {
-    const backendUp = await checkBackend();
-    if (backendUp) {
-      try {
-        const cached = await api.checkSceneCache(sceneInput, difficulty);
-        if (cached?.hit && cached.content) {
-          // 缓存命中，直接返回（节省一次 LLM 调用）
-          return cached.content as SceneContent;
+  // 1. 尝试命中缓存（后台可用且未要求跳过时）
+  if (!skipCache) {
+    try {
+      const backendUp = await checkBackend();
+      if (backendUp) {
+        try {
+          const cached = await api.checkSceneCache(sceneInput, difficulty);
+          if (cached?.hit && cached.content) {
+            // 缓存命中，直接返回（节省一次 LLM 调用）
+            return cached.content as SceneContent;
+          }
+        } catch {
+          // 缓存查询失败（如 404 未命中、网络错误），静默降级到 LLM 生成
         }
-      } catch {
-        // 缓存查询失败（如 404 未命中、网络错误），静默降级到 LLM 生成
       }
+    } catch {
+      // 后台检测失败，静默降级
     }
-  } catch {
-    // 后台检测失败，静默降级
   }
 
   // 2. 缓存未命中，调用 LLM 生成

@@ -18,8 +18,20 @@ import fs from 'fs';
 const app = express();
 
 // 中间件
-// 允许所有来源：Web 浏览器、Capacitor APK（origin=http://localhost）、PWA 等都能访问
-app.use(cors({ origin: true, credentials: true }));
+// CORS：用 config.corsOrigin 白名单收紧，避免 origin:true 反射任意源带凭证跨域
+// Capacitor APK 的 origin 为 http://localhost，已在 corsOrigin 中放行
+const allowedOrigins = config.corsOrigin.split(',').map(s => s.trim()).filter(Boolean);
+app.use(cors({
+  origin: (origin, callback) => {
+    // 允许同源请求（origin 为 undefined，如 Capacitor/PWA 部分场景）和白名单内来源
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json({ limit: '10mb' }));
 
 // 健康检查
