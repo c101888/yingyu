@@ -13,15 +13,27 @@ router.post('/award', authRequired, (req: AuthRequest, res: Response) => {
       res.status(400).json({ error: '缺少必要参数' });
       return;
     }
-    
+    // difficulty 值域校验，防止传任意字符串骗取 30 分
+    if (!['easy', 'medium', 'hard'].includes(difficulty)) {
+      res.status(400).json({ error: '无效的难度' });
+      return;
+    }
+
     const db = getDb();
+    // 校验 sessionId 真实存在且归属当前用户，防止伪造 sessionId 刷分
+    const session = db.prepare('SELECT id FROM learn_sessions WHERE id = ? AND user_id = ?').get(sessionId, req.userId);
+    if (!session) {
+      res.status(403).json({ error: '无效的学习会话' });
+      return;
+    }
+
     // 检查是否已发放
     const existing = db.prepare('SELECT id FROM point_records WHERE session_id = ?').get(sessionId);
     if (existing) {
       res.json({ stars: 0, message: '该场景已发放过积分' });
       return;
     }
-    
+
     const stars = difficulty === 'easy' ? 10 : difficulty === 'medium' ? 20 : 30;
     const recordId = generateId('p');
     const now = Date.now();

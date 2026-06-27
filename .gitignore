@@ -53,6 +53,12 @@ android/build-log*.txt
 *.apk
 dist.zip
 
+# 测试脚本（含 JWT 密钥/token/账号密码等敏感信息，禁止提交）
+test-jwt.*
+test-token.*
+test-login.*
+test-api.*
+
 # 系统文件
 Thumbs.db
 ehthumbs.db

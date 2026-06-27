@@ -1,6 +1,6 @@
 import { Router, Response } from 'express';
 import { getDb } from '../db/index.js';
-import { authRequired, AuthRequest } from '../middleware/auth.js';
+import { authRequired, adminRequired, AuthRequest } from '../middleware/auth.js';
 import { TIER_CONFIGS, Tier, getCurrentPeriod } from '../config/tiers.js';
 import { generateId } from '../utils/crypto.js';
 
@@ -106,8 +106,8 @@ router.post('/incr-gen', authRequired, (req: AuthRequest, res: Response) => {
   }
 });
 
-// 升级等级（占位：未来接入支付，当前仅管理员或测试用）
-router.post('/upgrade', authRequired, (req: AuthRequest, res: Response) => {
+// 升级等级（占位：未来接入支付，当前仅管理员可手动调整）
+router.post('/upgrade', adminRequired, (req: AuthRequest, res: Response) => {
   try {
     const { tier, durationDays } = req.body;
     if (!['plus', 'pro'].includes(tier)) {

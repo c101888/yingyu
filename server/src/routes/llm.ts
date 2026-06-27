@@ -2,8 +2,9 @@
 // 前端调用 /api/llm/chat/completions，由后端转发到 LLM 服务
 // 使用 llmScheduler 进行多模型调度（failover/loadbalance）
 
-import { Router, Request, Response } from 'express';
+import { Router, Response } from 'express';
 import { callLlm } from '../lib/llmScheduler.js';
+import { authRequired, AuthRequest } from '../middleware/auth.js';
 
 const router = Router();
 
@@ -12,7 +13,7 @@ const router = Router();
 // { model: string, messages: [{role, content}], temperature?: number }
 // 响应体格式（OpenAI 兼容）：
 // { choices: [{ message: { content: string } }] }
-router.post('/chat/completions', async (req: Request, res: Response) => {
+router.post('/chat/completions', authRequired, async (req: AuthRequest, res: Response) => {
   try {
     const { messages, temperature } = req.body;
 

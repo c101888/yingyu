@@ -16,7 +16,7 @@ export default defineConfig({
     proxy: {
       // 后台 API（认证、积分、会话、管理员等）转发到本地 server
       '/health': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:7550',
         changeOrigin: true,
       },
       // 注意：/api/llm 必须在 /api 之前，更具体的路径优先匹配
@@ -35,7 +35,7 @@ export default defineConfig({
         },
       },
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'http://localhost:7550',
         changeOrigin: true,
       },
     },
