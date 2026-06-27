@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { generateId } from '../utils/crypto.js';
 import { authRequired, AuthRequest } from '../middleware/auth.js';
@@ -51,7 +52,7 @@ router.post('/award', authRequired, (req: AuthRequest, res: Response) => {
     
     res.json({ stars, recordId });
   } catch (err) {
-    res.status(500).json({ error: '发放积分失败', detail: (err as Error).message });
+    res.status(500).json({ error: '发放积分失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 

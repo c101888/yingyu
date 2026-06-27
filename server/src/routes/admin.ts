@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { hashPassword, generateId } from '../utils/crypto.js';
 import { adminRequired, AuthRequest } from '../middleware/auth.js';
@@ -59,8 +60,33 @@ router.patch('/users/:id', (req: AuthRequest, res: Response) => {
   try {
     const { nickname, avatar, status, role } = req.body;
     const db = getDb();
+
+    // L3: 校验目标用户是否存在
+    const existing = db.prepare('SELECT id FROM users WHERE id = ?').get(req.params.id);
+    if (!existing) {
+      res.status(404).json({ error: '用户不存在' });
+      return;
+    }
+
+    // L2: 值域校验
+    if (nickname !== undefined && (typeof nickname !== 'string' || nickname.length < 1 || nickname.length > 20)) {
+      res.status(400).json({ error: '昵称需 1-20 个字符' });
+      return;
+    }
+    if (avatar !== undefined && (typeof avatar !== 'string' || avatar.length > 10)) {
+      res.status(400).json({ error: '头像不合法' });
+      return;
+    }
+    if (status !== undefined && !['active', 'frozen', 'deleted'].includes(status)) {
+      res.status(400).json({ error: '无效的状态' });
+      return;
+    }
+    if (role !== undefined && !['user', 'admin'].includes(role)) {
+      res.status(400).json({ error: '无效的角色' });
+      return;
+    }
+
     const now = Date.now();
-    
     const updates: string[] = [];
     const params: any[] = [];
     if (nickname !== undefined) { updates.push('nickname = ?'); params.push(nickname); }
@@ -69,7 +95,7 @@ router.patch('/users/:id', (req: AuthRequest, res: Response) => {
     if (role !== undefined) { updates.push('role = ?'); params.push(role); }
     updates.push('updated_at = ?'); params.push(now);
     params.push(req.params.id);
-    
+
     db.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).run(...params);
     
     // 记录管理员操作日志
@@ -80,7 +106,7 @@ router.patch('/users/:id', (req: AuthRequest, res: Response) => {
     
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: '更新用户失败', detail: (err as Error).message });
+    res.status(500).json({ error: '更新用户失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -93,12 +119,18 @@ router.patch('/users/:id/password', async (req: AuthRequest, res: Response) => {
       return;
     }
     const db = getDb();
+    // L3: 校验目标用户是否存在
+    const existing = db.prepare('SELECT id FROM users WHERE id = ?').get(req.params.id);
+    if (!existing) {
+      res.status(404).json({ error: '用户不存在' });
+      return;
+    }
     const hash = await hashPassword(newPassword);
     db.prepare('UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?')
       .run(hash, Date.now(), req.params.id);
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: '修改密码失败', detail: (err as Error).message });
+    res.status(500).json({ error: '修改密码失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -128,7 +160,7 @@ router.post('/users/:id/stars', (req: AuthRequest, res: Response) => {
     
     res.json({ success: true, totalStars: newTotal });
   } catch (err) {
-    res.status(500).json({ error: '调整积分失败', detail: (err as Error).message });
+    res.status(500).json({ error: '调整积分失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -186,7 +218,7 @@ router.post('/users/:id/tier', (req: AuthRequest, res: Response) => {
 
     res.json({ success: true, tier, tierExpireAt: finalExpireAt });
   } catch (err) {
-    res.status(500).json({ error: '设置用户权益失败', detail: (err as Error).message });
+    res.status(500).json({ error: '设置用户权益失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -219,7 +251,7 @@ router.post('/settings/llm', (req: AuthRequest, res: Response) => {
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: '更新 LLM 配置失败', detail: (err as Error).message });
+    res.status(500).json({ error: '更新 LLM 配置失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -231,11 +263,19 @@ import { getLlmMode, setLlmMode, type LlmMode } from '../lib/llmScheduler.js';
 router.get('/llm-providers', (req: AuthRequest, res: Response) => {
   const db = getDb();
   const providers = db.prepare('SELECT * FROM llm_providers ORDER BY priority ASC, created_at ASC').all() as any[];
-  // 脱敏 api_key（只返回前后4位）
-  const masked = providers.map((p) => ({
-    ...p,
-    api_key: p.api_key ? `${p.api_key.slice(0, 4)}****${p.api_key.slice(-4)}` : '',
-  }));
+  // 脱敏 api_key（L1: 短 key 防重叠，长度<=8 只显示前2位+**）
+  const masked = providers.map((p) => {
+    const k = p.api_key || '';
+    let maskedKey = '';
+    if (k.length > 8) {
+      maskedKey = `${k.slice(0, 4)}****${k.slice(-4)}`;
+    } else if (k.length > 2) {
+      maskedKey = `${k.slice(0, 2)}**`;
+    } else {
+      maskedKey = k ? '**' : '';
+    }
+    return { ...p, api_key: maskedKey };
+  });
   res.json({ providers: masked, mode: getLlmMode() });
 });
 
@@ -268,7 +308,7 @@ router.post('/llm-providers', (req: AuthRequest, res: Response) => {
 
     res.json({ success: true, id });
   } catch (err) {
-    res.status(500).json({ error: '创建 LLM provider 失败', detail: (err as Error).message });
+    res.status(500).json({ error: '创建 LLM provider 失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -304,7 +344,7 @@ router.patch('/llm-providers/:id', (req: AuthRequest, res: Response) => {
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: '更新 LLM provider 失败', detail: (err as Error).message });
+    res.status(500).json({ error: '更新 LLM provider 失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -338,7 +378,7 @@ router.post('/llm-mode', (req: AuthRequest, res: Response) => {
 
     res.json({ success: true, mode });
   } catch (err) {
-    res.status(500).json({ error: '切换模式失败', detail: (err as Error).message });
+    res.status(500).json({ error: '切换模式失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -386,7 +426,7 @@ router.post('/llm-providers/:id/test', async (req: AuthRequest, res: Response) =
       clearTimeout(timer);
     }
   } catch (err) {
-    res.status(500).json({ error: '测试失败', detail: (err as Error).message });
+    res.status(500).json({ error: '测试失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -407,7 +447,7 @@ router.post('/backup', (req: AuthRequest, res: Response) => {
     
     res.json({ success: true, path: backupPath, size: fs.statSync(backupPath).size });
   } catch (err) {
-    res.status(500).json({ error: '备份失败', detail: (err as Error).message });
+    res.status(500).json({ error: '备份失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -428,7 +468,7 @@ router.get('/backups', (req: AuthRequest, res: Response) => {
       .sort((a, b) => b.createdAt - a.createdAt);
     res.json({ backups: files });
   } catch (err) {
-    res.status(500).json({ error: '获取备份列表失败', detail: (err as Error).message });
+    res.status(500).json({ error: '获取备份列表失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -501,7 +541,7 @@ router.get('/system/disk', (req: AuthRequest, res: Response) => {
       memoryUsagePercent: Math.round(((totalMem - freeMem) / totalMem) * 100),
     });
   } catch (err) {
-    res.status(500).json({ error: '获取系统信息失败', detail: (err as Error).message });
+    res.status(500).json({ error: '获取系统信息失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 

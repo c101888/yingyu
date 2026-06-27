@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef } from 'react';
+import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { Check, X, Repeat, ChevronRight, Headphones, Eye, Type, ArrowLeftRight, PencilLine } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -15,12 +15,11 @@ interface QuizProps {
 }
 
 export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsReady }: QuizProps) {
-  const questions = useMemo(() => {
-    const qs = generateQuiz(content, difficulty);
-    // 通知父组件实际题数
-    if (onQuestionsReady) onQuestionsReady(qs.length);
-    return qs;
-  }, [content, difficulty, onQuestionsReady]);
+  const questions = useMemo(() => generateQuiz(content, difficulty), [content, difficulty]);
+  // L7: 通知父组件实际题数，放在 useEffect 避免渲染期间调用父组件 setState（React 反模式）
+  useEffect(() => {
+    if (onQuestionsReady) onQuestionsReady(questions.length);
+  }, [questions, onQuestionsReady]);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({}); // questionId -> optionId
   const [showResult, setShowResult] = useState<Record<string, boolean>>({}); // questionId -> 是否已作答
@@ -30,6 +29,16 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
   const advancingRef = useRef(false);
   // 待执行的自动跳转 timeout 句柄：手动点击时立即取消，避免手动+自动双重跳转
   const autoAdvanceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // L5: 组件卸载时清理自动跳转定时器，避免对已卸载组件调用 handleNext/onComplete
+  useEffect(() => {
+    return () => {
+      if (autoAdvanceTimerRef.current) {
+        clearTimeout(autoAdvanceTimerRef.current);
+        autoAdvanceTimerRef.current = null;
+      }
+    };
+  }, []);
 
   const current = questions[currentIdx];
   const total = questions.length;

@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { authRequired, AuthRequest } from '../middleware/auth.js';
 import { generateId } from '../utils/crypto.js';
@@ -49,7 +50,7 @@ router.get('/', authRequired, (req: AuthRequest, res: Response) => {
       canRedeem,
     });
   } catch (err) {
-    res.status(500).json({ error: '获取奖励失败', detail: (err as Error).message });
+    res.status(500).json({ error: '获取奖励失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -90,7 +91,7 @@ router.post('/', authRequired, (req: AuthRequest, res: Response) => {
       sortOrder: maxSort + 1,
     });
   } catch (err) {
-    res.status(500).json({ error: '创建奖励失败', detail: (err as Error).message });
+    res.status(500).json({ error: '创建奖励失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -129,7 +130,7 @@ router.patch('/:id', authRequired, (req: AuthRequest, res: Response) => {
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: '修改奖励失败', detail: (err as Error).message });
+    res.status(500).json({ error: '修改奖励失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -156,7 +157,7 @@ router.delete('/:id', authRequired, (req: AuthRequest, res: Response) => {
     }
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: '删除奖励失败', detail: (err as Error).message });
+    res.status(500).json({ error: '删除奖励失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -206,7 +207,7 @@ router.post('/:id/redeem', authRequired, (req: AuthRequest, res: Response) => {
       message: `兑换成功！消耗 ${reward.star_cost}⭐`,
     });
   } catch (err) {
-    res.status(500).json({ error: '兑换失败', detail: (err as Error).message });
+    res.status(500).json({ error: '兑换失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -225,7 +226,7 @@ router.get('/redemptions', authRequired, (req: AuthRequest, res: Response) => {
       })),
     });
   } catch (err) {
-    res.status(500).json({ error: '获取兑换历史失败', detail: (err as Error).message });
+    res.status(500).json({ error: '获取兑换历史失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 

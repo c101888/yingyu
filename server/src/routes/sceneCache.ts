@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { authRequired, AuthRequest } from '../middleware/auth.js';
 
@@ -80,7 +81,7 @@ router.get('/', authRequired, (req: AuthRequest, res: Response) => {
       hitCount: row.hit_count + 1,
     });
   } catch (err) {
-    res.status(500).json({ error: '查询缓存失败', detail: (err as Error).message });
+    res.status(500).json({ error: '查询缓存失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -114,7 +115,7 @@ router.post('/', authRequired, (req: AuthRequest, res: Response) => {
       difficulty: diff,
     });
   } catch (err) {
-    res.status(500).json({ error: '保存缓存失败', detail: (err as Error).message });
+    res.status(500).json({ error: '保存缓存失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -170,7 +171,7 @@ router.get('/stats', authRequired, (req: AuthRequest, res: Response) => {
       })),
     });
   } catch (err) {
-    res.status(500).json({ error: '获取统计失败', detail: (err as Error).message });
+    res.status(500).json({ error: '获取统计失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -186,7 +187,7 @@ router.delete('/', authRequired, (req: AuthRequest, res: Response) => {
     const result = db.prepare('DELETE FROM scene_cache').run();
     res.json({ deleted: result.changes });
   } catch (err) {
-    res.status(500).json({ error: '清空缓存失败', detail: (err as Error).message });
+    res.status(500).json({ error: '清空缓存失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 

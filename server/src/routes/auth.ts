@@ -1,4 +1,6 @@
 import { Router, Response } from 'express';
+import rateLimit from 'express-rate-limit';
+import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { hashPassword, verifyPassword, signToken, generateId } from '../utils/crypto.js';
 import { AuthRequest } from '../middleware/auth.js';
@@ -6,8 +8,27 @@ import { authRequired } from '../middleware/auth.js';
 
 const router = Router();
 
+// M3 限流：登录每 IP 每 15 分钟 10 次，注册每 IP 每小时 5 次
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: '登录尝试过于频繁，请 15 分钟后再试' },
+});
+const registerLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: '注册请求过于频繁，请 1 小时后再试' },
+});
+
+// JWT 有效期对应的毫秒数（用于 sessions 表 expires_at，与 token 过期保持一致）
+const JWT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 // 注册：账户 + 邮箱 + 密码 + 头像
-router.post('/register', async (req, res: Response) => {
+router.post('/register', registerLimiter, async (req, res: Response) => {
   try {
     const { username, email, password, nickname, avatar } = req.body;
     if (!username || !email || !password) {
@@ -68,12 +89,12 @@ router.post('/register', async (req, res: Response) => {
       user: { id: userId, username, email, nickname: finalNickname, avatar: finalAvatar, role: 'user', totalStars: 0, tier: 'free', tierExpireAt: null }
     });
   } catch (err) {
-    res.status(500).json({ error: '注册失败', detail: (err as Error).message });
+    res.status(500).json({ error: '注册失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
 // 登录：支持账户或邮箱 + 密码
-router.post('/login', async (req, res: Response) => {
+router.post('/login', loginLimiter, async (req, res: Response) => {
   try {
     const { account, password } = req.body;
     if (!account || !password) {
@@ -101,7 +122,13 @@ router.post('/login', async (req, res: Response) => {
     
     // 更新最后登录时间
     db.prepare('UPDATE users SET last_login_at = ?, updated_at = ? WHERE id = ?').run(Date.now(), Date.now(), user.id);
-    
+
+    // M1: 写入 sessions 表用于在线用户统计（先删该用户旧 session 避免堆积）
+    const now = Date.now();
+    db.prepare('DELETE FROM sessions WHERE user_id = ?').run(user.id);
+    db.prepare('INSERT INTO sessions (id, user_id, token_hash, ip, user_agent, created_at, expires_at) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(generateId('sess'), user.id, generateId('th'), req.ip || '', req.headers['user-agent'] || '', now, now + JWT_TTL_MS);
+
     const token = signToken({ userId: user.id, role: user.role });
     res.json({
       token,
@@ -113,7 +140,7 @@ router.post('/login', async (req, res: Response) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ error: '登录失败', detail: (err as Error).message });
+    res.status(500).json({ error: '登录失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 

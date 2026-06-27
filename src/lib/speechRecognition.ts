@@ -308,6 +308,11 @@ function startNativeRecognition(original: string, options: RecognizeOptions): ()
           console.warn('[SpeechRecognition] NO_MATCH 自动重试 1 次');
           // 短暂延迟让系统资源释放
           await new Promise((r) => setTimeout(r, 300));
+          // L6: 延迟后重新检查 stopped，避免用户在 300ms 窗口内点停止后仍启动新识别
+          if (stopped || finished) {
+            nativeRecognitionActive = false;
+            return;
+          }
           nativeRecognitionActive = false;
           // 重新启动一次
           startFallbackTimer = setTimeout(() => {

@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { authRequired, adminRequired, AuthRequest } from '../middleware/auth.js';
 import { TIER_CONFIGS, Tier, getCurrentPeriod } from '../config/tiers.js';
@@ -52,7 +53,7 @@ router.get('/me', authRequired, (req: AuthRequest, res: Response) => {
       totalStars: user.total_stars || 0,
     });
   } catch (err) {
-    res.status(500).json({ error: '获取等级信息失败', detail: (err as Error).message });
+    res.status(500).json({ error: '获取等级信息失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -102,7 +103,7 @@ router.post('/incr-gen', authRequired, (req: AuthRequest, res: Response) => {
       remaining: monthlyLimit > 0 ? Math.max(0, monthlyLimit - newMonthly) : (totalLimit > 0 ? Math.max(0, totalLimit - newTotal) : -1),
     });
   } catch (err) {
-    res.status(500).json({ error: '增加生成次数失败', detail: (err as Error).message });
+    res.status(500).json({ error: '增加生成次数失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -129,7 +130,7 @@ router.post('/upgrade', adminRequired, (req: AuthRequest, res: Response) => {
       message: `已升级为 ${TIER_CONFIGS[tier as Tier].nameZh}，有效期 ${days} 天`,
     });
   } catch (err) {
-    res.status(500).json({ error: '升级失败', detail: (err as Error).message });
+    res.status(500).json({ error: '升级失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -141,7 +142,7 @@ router.post('/downgrade', authRequired, (req: AuthRequest, res: Response) => {
       .run('free', Date.now(), req.userId);
     res.json({ success: true, tier: 'free' });
   } catch (err) {
-    res.status(500).json({ error: '降级失败', detail: (err as Error).message });
+    res.status(500).json({ error: '降级失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 

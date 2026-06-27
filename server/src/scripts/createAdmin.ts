@@ -25,7 +25,7 @@ export async function createDefaultAdmin(): Promise<void> {
   console.log('✅ 默认管理员账号创建成功');
   console.log(`   账户: ${config.defaultAdmin.username}`);
   console.log(`   邮箱: ${config.defaultAdmin.email}`);
-  console.log(`   密码: ${config.defaultAdmin.password}`);
+  console.log('   密码: 请查看 server/.env 中的 DEFAULT_ADMIN_PASSWORD');
   console.log('   ⚠️  请尽快登录修改密码！');
 }
 

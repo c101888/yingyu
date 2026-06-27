@@ -1,4 +1,5 @@
 import { Router, Response } from 'express';
+import { config } from '../config.js';
 import { getDb } from '../db/index.js';
 import { generateId } from '../utils/crypto.js';
 import { authRequired, AuthRequest } from '../middleware/auth.js';
@@ -25,7 +26,7 @@ router.post('/', authRequired, (req: AuthRequest, res: Response) => {
 
     res.json({ id, createdAt: now });
   } catch (err) {
-    res.status(500).json({ error: '创建会话失败', detail: (err as Error).message });
+    res.status(500).json({ error: '创建会话失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -59,7 +60,7 @@ router.patch('/:id', authRequired, (req: AuthRequest, res: Response) => {
 
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: '更新会话失败', detail: (err as Error).message });
+    res.status(500).json({ error: '更新会话失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
@@ -78,7 +79,7 @@ router.delete('/:id', authRequired, (req: AuthRequest, res: Response) => {
     db.prepare('UPDATE learn_sessions SET deleted = 1, updated_at = ? WHERE id = ?').run(now, id);
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: '删除会话失败', detail: (err as Error).message });
+    res.status(500).json({ error: '删除会话失败', detail: config.isProd ? undefined : (err as Error).message });
   }
 });
 
