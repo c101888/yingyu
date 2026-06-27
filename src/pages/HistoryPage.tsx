@@ -45,7 +45,7 @@ export default function HistoryPage() {
   const navigate = useNavigate();
   const allEntries = useHistoryStore((s) => s.entries);
   const removeEntryWithSync = useHistoryStore((s) => s.removeEntryWithSync);
-  const clearByUser = useHistoryStore((s) => s.clearByUser);
+  const clearByUserWithSync = useHistoryStore((s) => s.clearByUserWithSync);
   const clearGuest = useHistoryStore((s) => s.clearGuest);
   const restoreSession = useSessionStore((s) => s.restoreSession);
   const currentUser = useUserStore((s) => s.currentUser);
@@ -91,7 +91,8 @@ export default function HistoryPage() {
   const handleClearAll = () => {
     // 只清空当前用户（或游客）的记录，不影响其他用户
     if (currentUser) {
-      clearByUser(currentUser.id);
+      // 同步后端，避免下次登录记录复现
+      clearByUserWithSync(currentUser.id);
     } else {
       clearGuest();
     }

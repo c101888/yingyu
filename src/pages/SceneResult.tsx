@@ -78,6 +78,10 @@ export default function SceneResult() {
   // 丰富对话细节（Pro 专属功能）
   const currentUser = useUserStore((s) => s.currentUser);
   const isPro = currentUser?.tier === 'pro';
+  // 游客额度（从 route 进入时也要检查）
+  const canGuestUse = useUserStore((s) => s.canGuestUse);
+  const incrementGuestUsage = useUserStore((s) => s.incrementGuestUsage);
+  const tierInfo = useTierStore();
   const [showEnrichDialog, setShowEnrichDialog] = useState(false);
   const [enrichHint, setEnrichHint] = useState('');
   const [enriching, setEnriching] = useState(false);
@@ -92,25 +96,62 @@ export default function SceneResult() {
 
   const fromRoute = params.get('from') === 'route';
   const routeScene = params.get('scene') || '';
+  const routeDifficulty = (params.get('difficulty') as 'easy' | 'medium' | 'hard') || 'easy';
 
-  // 从每日路线进入：生成对应场景内容
+  // 从每日路线进入：生成对应场景内容（与首页一致，需走额度检查 + 计数）
   useEffect(() => {
-    if (fromRoute && routeScene && (!session || session.sceneInput !== routeScene)) {
-      setLoading(true);
-      setLoadError(null);
-      // 路线场景默认用 easy 难度（路线节点不带难度）
-      generateSceneContent(routeScene, 'easy')
-        .then((content) => {
-          createSession({ sceneInput: routeScene, source: 'route', content, difficulty: 'easy' });
-        })
-        .catch((err) => {
-          if (isAuthError(err)) return; // 登录已过期，静默处理
-          setLoadError(err instanceof Error ? err.message : '生成失败');
-        })
-        .finally(() => setLoading(false));
+    if (!fromRoute || !routeScene) return;
+    if (session && session.sceneInput === routeScene) return;
+    // 游客模式：检查使用次数
+    if (!currentUser) {
+      if (!canGuestUse) {
+        setLoadError('游客生成次数已用完，登录后可获得更多次数');
+        setLoading(false);
+        return;
+      }
+    } else {
+      // 登录用户：检查 tier 额度
+      if (!tierInfo.canGenerate) {
+        setLoadError('本月生成次数已用完，可升级会员获取更多次数');
+        setLoading(false);
+        return;
+      }
     }
+    setLoading(true);
+    setLoadError(null);
+    generateSceneContent(routeScene, routeDifficulty)
+      .then(async (content) => {
+        // 登录用户：增加 tier 计数（后端会再次校验）
+        if (currentUser) {
+          try {
+            const ok = await tierInfo.incrGenCount();
+            if (!ok) {
+              setLoading(false);
+              return;
+            }
+          } catch (err) {
+            if (isAuthError(err)) {
+              setLoading(false);
+              return;
+            }
+            setLoading(false);
+            setLoadError('本月生成次数已用完，可升级会员获取更多次数');
+            return;
+          }
+        }
+        createSession({ sceneInput: routeScene, source: 'route', content, difficulty: routeDifficulty });
+        // 游客模式增加使用次数
+        if (!currentUser) {
+          incrementGuestUsage();
+        }
+      })
+      .catch((err) => {
+        if (isAuthError(err)) return; // 登录已过期，静默处理
+        setLoadError(err instanceof Error ? err.message : '生成失败');
+      })
+      .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fromRoute, routeScene]);
+  }, [fromRoute, routeScene, routeDifficulty]);
 
   // 组件卸载时停止语音
   useEffect(() => {
@@ -212,11 +253,30 @@ export default function SceneResult() {
   const dialogue = Array.isArray(content.dialogue) ? content.dialogue : [];
 
   const handleRegenerate = async () => {
+    // 重新生成同样消耗额度，先检查
+    if (currentUser && !tierInfo.canGenerate) {
+      setRegenError('本月生成次数已用完，可升级会员获取更多次数');
+      return;
+    }
+    if (!currentUser && !canGuestUse) {
+      setRegenError('游客生成次数已用完，登录后可获得更多次数');
+      return;
+    }
     setRegenerating(true);
     setRegenError(null);
     try {
       // 重新生成时沿用当前会话的难度，skipCache=true 强制重新调用 LLM（否则会命中缓存返回相同内容）
       const newContent = await generateSceneContent(session.sceneInput, session.difficulty || 'easy', true);
+      // 登录用户：计入生成次数（与首次生成、丰富对话细节一致）
+      if (currentUser) {
+        try {
+          await tierInfo.incrGenCount();
+        } catch (err) {
+          if (isAuthError(err)) return;
+        }
+      } else {
+        incrementGuestUsage();
+      }
       setContent(newContent);
       // 重置互动追踪
       setListenedWords(new Set());
@@ -303,7 +363,7 @@ export default function SceneResult() {
   const hasEngaged = listenedWords.size > 0 || listenedSentences.size > 0;
 
   return (
-    <PageShell step={1}>
+    <PageShell step={1} showHome={false} showHistory={false} showProfile={false} showLearnCenter={false}>
       <div className="mx-auto max-w-3xl">
         {/* 场景标题 */}
         <div className="mb-6 text-center animate-fade-up">

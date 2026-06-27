@@ -31,6 +31,8 @@ interface HistoryState {
   getByUser: (userId: string | null) => HistoryEntry[];
   // 清空某用户的所有记录
   clearByUser: (userId: string) => void;
+  // 清空某用户的所有记录并同步后端（逐条软删除）
+  clearByUserWithSync: (userId: string) => Promise<void>;
   // 清空游客数据
   clearGuest: () => void;
   // 从后端数据库加载历史记录（登录用户跨设备同步）
@@ -88,6 +90,20 @@ export const useHistoryStore = create<HistoryState>()(
         set((state) => ({
           entries: state.entries.filter((e) => e.userId !== userId),
         })),
+      clearByUserWithSync: async (userId: string) => {
+        const { entries } = get();
+        const userEntries = entries.filter((e) => e.userId === userId);
+        // 先清本地
+        set((state) => ({ entries: state.entries.filter((e) => e.userId !== userId) }));
+        // 同步后端（逐条软删除）
+        try {
+          const up = await checkBackend();
+          if (!up) return;
+          await Promise.all(userEntries.map((e) => api.deleteSession(e.id).catch(() => {})));
+        } catch (err) {
+          if (isAuthError(err)) return;
+        }
+      },
       clearGuest: () =>
         set((state) => ({
           entries: state.entries.filter((e) => e.userId !== null),

@@ -19,6 +19,7 @@ export default function Upgrade() {
   const tierInfo = useTierStore((s) => s);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('yearly');
   const [upgrading, setUpgrading] = useState<Tier | null>(null);
+  const [downgrading, setDowngrading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -53,6 +54,30 @@ export default function Upgrade() {
       setError(err instanceof Error ? err.message : '升级失败');
     } finally {
       setUpgrading(null);
+    }
+  };
+
+  // 取消订阅：降级为免费版（对齐 FAQ"可以随时取消"的承诺）
+  const handleDowngrade = async () => {
+    if (!currentUser) return;
+    setDowngrading(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const backendUp = await checkBackend();
+      if (!backendUp) {
+        setError('后台服务未启动，无法取消');
+        return;
+      }
+      await api.downgradeTier();
+      await refreshMe();
+      await tierInfo.refresh();
+      setSuccess('已取消订阅，降级为免费版。已生成的内容和星星保留。');
+    } catch (err) {
+      if (isAuthError(err)) return;
+      setError(err instanceof Error ? err.message : '取消失败');
+    } finally {
+      setDowngrading(false);
     }
   };
 
@@ -276,6 +301,32 @@ export default function Upgrade() {
             </div>
           </CardContent>
         </Card>
+
+        {/* 取消订阅入口（仅 Plus/Pro 用户可见，对齐 FAQ"可以随时取消"承诺） */}
+        {currentUser && currentTier !== 'free' && (
+          <Card className="mt-6 border-border/60 animate-fade-up">
+            <CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <div>
+                <h4 className="font-semibold">取消订阅</h4>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  取消后立即降级为免费版，已生成的学习内容和星星/等级保留，不受影响。
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="shrink-0 border-destructive/40 text-destructive hover:bg-destructive/5"
+                onClick={handleDowngrade}
+                disabled={downgrading || upgrading !== null}
+              >
+                {downgrading ? (
+                  <><Loader2 className="h-4 w-4 animate-spin" /> 取消中…</>
+                ) : (
+                  '取消订阅'
+                )}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* FAQ */}
         <div className="mt-6 grid gap-4 sm:grid-cols-2 animate-fade-up" style={{ animationDelay: '0.2s' }}>

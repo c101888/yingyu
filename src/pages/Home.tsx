@@ -51,7 +51,7 @@ export default function Home() {
   const generating = useSessionStore((s) => s.generating);
   const route = useRouteStore((s) => s.route);
   const allHistoryEntries = useHistoryStore((s) => s.entries);
-  const removeHistoryEntry = useHistoryStore((s) => s.removeEntry);
+  const removeHistoryEntry = useHistoryStore((s) => s.removeEntryWithSync);
   const clearGuest = useHistoryStore((s) => s.clearGuest);
   const currentUser = useUserStore((s) => s.currentUser);
   const guestUsageCount = useUserStore((s) => s.guestUsageCount);

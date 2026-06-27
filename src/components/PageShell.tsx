@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, History, User, GraduationCap } from 'lucide-react';
+import { Home, History, User, GraduationCap, Volume2, X } from 'lucide-react';
 import { VoicePicker } from '@/components/VoicePicker';
 import { useUserStore } from '@/store/useUserStore';
 import { useTierStore } from '@/store/useTierStore';
@@ -27,10 +27,9 @@ function tierBadgeStyle(tier: 'free' | 'plus' | 'pro'): string {
   return 'border-border bg-card text-foreground hover:bg-secondary';
 }
 
-// 移动端底部 Tab 配置
+// 移动端底部 Tab 配置（学习中心为占位页，暂从 TabBar 移除避免用户点进空壳）
 const MOBILE_TABS = [
   { to: '/', label: '首页', icon: Home, match: (p: string) => p === '/' },
-  { to: '/learn-center', label: '学习', icon: GraduationCap, match: (p: string) => p === '/learn-center' },
   { to: '/history', label: '历史', icon: History, match: (p: string) => p === '/history' },
   { to: '/profile', label: '我的', icon: User, match: (p: string) => p === '/profile' },
 ];
@@ -39,6 +38,8 @@ export function PageShell({ children, showHome = true, showHistory = true, showP
   const currentUser = useUserStore((s) => s.currentUser);
   const tierInfo = useTierStore();
   const location = useLocation();
+  // 移动端语音音色选择弹层
+  const [showVoiceMobile, setShowVoiceMobile] = useState(false);
 
   // 登录后刷新 tier 信息（用于首页生成按钮旁显示剩余次数）
   useEffect(() => {
@@ -120,8 +121,16 @@ export function PageShell({ children, showHome = true, showHistory = true, showP
             )}
           </div>
 
-          {/* 移动端：仅保留用户头像/登录入口（其余导航移到底部 Tab Bar） */}
+          {/* 移动端：语音音色入口 + 用户头像/登录入口（其余导航移到底部 Tab Bar） */}
           <div className="flex items-center gap-2 sm:hidden">
+            <button
+              onClick={() => setShowVoiceMobile(true)}
+              className="grid h-10 w-10 place-items-center rounded-2xl border border-border bg-card text-foreground transition-colors hover:bg-secondary"
+              title="语音音色设置"
+              aria-label="语音音色设置"
+            >
+              <Volume2 className="h-5 w-5" />
+            </button>
             {showProfile && (
               currentUser ? (
                 <Link
@@ -189,21 +198,48 @@ export function PageShell({ children, showHome = true, showHistory = true, showP
         把家庭生活里的真实场景，变成孩子马上能学、能说、能用的英语。
       </footer>
 
-      {/* 移动端底部 Tab Bar（固定底部，适配 safe-area） */}
+      {/* 移动端语音音色选择弹层（从底部滑出，仅手机端） */}
+      {showVoiceMobile && (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:hidden"
+          onClick={() => setShowVoiceMobile(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-t-3xl border border-border bg-card p-4 shadow-soft-lg animate-fade-up"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Volume2 className="h-5 w-5 text-primary" />
+                <h3 className="font-display font-bold">语音音色</h3>
+              </div>
+              <button
+                onClick={() => setShowVoiceMobile(false)}
+                className="grid h-8 w-8 place-items-center rounded-full text-muted-foreground hover:bg-secondary"
+                aria-label="关闭"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+            <VoicePicker />
+          </div>
+        </div>
+      )}
+
+      {/* 移动端底部 Tab Bar（固定底部，适配 safe-area，3 列布局） */}
       <nav className="safe-bottom sticky bottom-0 z-30 border-t border-border/60 bg-background/85 backdrop-blur-md sm:hidden">
-        <div className="container grid grid-cols-4">
+        <div className="container grid grid-cols-3">
           {MOBILE_TABS.map((tab) => {
             const Icon = tab.icon;
             const isActive = tab.match(location.pathname);
             // 当 PageShell 关闭了某个入口时，对应 Tab 仍可点击跳转，但不显示激活态
             const visible =
               (tab.to === '/' && showHome) ||
-              (tab.to === '/learn-center' && showLearnCenter) ||
               (tab.to === '/history' && showHistory) ||
               (tab.to === '/profile' && showProfile) ||
               tab.to === '/';
             if (!visible) {
-              // 入口被关闭时占位，保持 4 列布局对齐
+              // 入口被关闭时占位，保持布局对齐
               return <div key={tab.to} className="h-14" aria-hidden />;
             }
             return (

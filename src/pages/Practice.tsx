@@ -81,6 +81,12 @@ export default function Practice() {
   const progress = ((round + (childSpoken ? 1 : 0)) / total) * 100;
 
   const playDemo = () => {
+    // 正在播放则停止
+    if (playingDemo) {
+      stopSpeaking();
+      setPlayingDemo(false);
+      return;
+    }
     // 依次播放家长台词 + 孩子回应
     setPlayingDemo(true);
     speak(current.parent, {
@@ -116,7 +122,7 @@ export default function Practice() {
   };
 
   return (
-    <PageShell step={3}>
+    <PageShell step={3} showHome={false} showHistory={false} showProfile={false} showLearnCenter={false}>
       <div className="mx-auto max-w-3xl">
         {/* 标题 + 进度 */}
         <div className="mb-6 text-center animate-fade-up">
@@ -244,11 +250,11 @@ export default function Practice() {
               </div>
             </div>
 
-            {/* 整轮示范 */}
+            {/* 整轮示范（播放中可点击停止） */}
             <div className="mt-6 flex justify-center animate-fade-up" style={{ animationDelay: '0.2s' }}>
-              <Button variant="outline" onClick={playDemo} disabled={playingDemo} className="gap-2">
+              <Button variant={playingDemo ? 'soft' : 'outline'} onClick={playDemo} className="gap-2">
                 <Volume2 className={cn(playingDemo && 'animate-pulse')} />
-                {playingDemo ? '正在播放整轮示范…' : '播放整轮示范'}
+                {playingDemo ? '停止播放' : '播放整轮示范'}
               </Button>
             </div>
           </CardContent>

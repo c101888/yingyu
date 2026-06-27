@@ -175,6 +175,38 @@ b5a7c77 add LLM proxy route and admin-ui sub-path support
 4. **Git 自动备份**:每完成一轮修改必须 `git add -A; git commit -m "..."`,详见 `DevelopmentRules.md` §5
 5. **bug/ 截图**:7 张 2026-06-23 的 bug 截图在 `bug/` 目录,与跟读功能 v2.0 之前的报错有关
 
+### ⛔ 阻断商业化的重要问题：跟读功能依赖浏览器原生语音识别
+
+**问题性质**：核心学习闭环阻断，不解决无法商业化，只能停留在小范围测试阶段。
+
+**现状**：跟读功能（`src/lib/speechRecognition.ts`）依赖浏览器原生 Web Speech API + Capacitor 插件。Learn 页（`src/pages/Learn.tsx`）的 `canFinish = allRead && quizDone`，而 `markReadWord`/`markReadSentence` 仅在 `RepeatButton` 的 `onScored` 回调（语音识别成功）时触发。
+
+**影响范围**：
+- Firefox/Safari 等不支持 `webkitSpeechRecognition` 的浏览器：用户无法标记词汇/句子为已读，永远卡在 Learn 页，无法进入 Practice/Done，无法获得积分
+- 国内 Android 手机（小米/华为等无 Google 服务）：即使 `recognitionSupported()` 返回 true，实际识别常失败，`onScored` 不触发，同样卡死
+- 用户拒绝麦克风权限后：`onError` 触发但 `onScored` 不触发，依然卡死
+- **整个学习闭环（学习→演练→完成→积分）对上述用户完全不可用**
+
+**为什么不解决无法商业化**：
+- 移动端是产品主要受众（家庭场景），但国内 Android 手机恰恰是语音识别失败重灾区
+- 语音识别失败 = 学习流程卡死 = 用户无法体验核心价值 = 无法留存/付费
+- 任何弱降级方案（Web Audio API 音量检测/"跳过跟读"）都放弃了跟读验证发音的核心价值，对英语学习产品来说功能名存实亡，只是凑合不是解决方案
+
+**唯一解决方案**：接入服务端语音识别 API（如火山引擎 ASR / 阿里云语音识别 / 腾讯云 ASR）。录音→上传→返回识别文本→与目标文本比对评分。不依赖浏览器原生 API，覆盖所有终端。
+
+**排查过的替代方案及否决理由**：
+1. Web Audio API 音量检测：只能检测"有没有说话"而非"说得对不对"，乱说一通也能过关，违背英语跟读核心价值
+2. "跳过跟读"按钮：放弃跟读功能价值，与产品定位冲突
+3. 保留现状 + 提示用户换浏览器：用户体验差，且无法解决国内 Android 无 Google 服务问题
+
+**涉及文件**（接入 API 时需改动）：
+- `src/lib/speechRecognition.ts`（核心状态机）
+- `src/components/RepeatButton.tsx`（跟读按钮）
+- `src/pages/Learn.tsx`（canFinish 逻辑、markRead 回调）
+- `server/src/routes/llm.ts` 或新增 `server/src/routes/asr.ts`（服务端代理，避免前端暴露 ASR 密钥）
+
+**当前处理方式**：暂不修改，待商业化前必须接入服务端语音识别 API。
+
 ## 10. 本地启动命令
 
 ```powershell

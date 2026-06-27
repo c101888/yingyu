@@ -62,7 +62,7 @@ export default function Learn() {
   };
 
   return (
-    <PageShell step={2}>
+    <PageShell step={2} showHome={false} showHistory={false} showProfile={false} showLearnCenter={false}>
       <div className="mx-auto max-w-3xl">
         {/* 标题 */}
         <div className="mb-6 text-center animate-fade-up">

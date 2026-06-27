@@ -95,10 +95,14 @@ export function Quiz({ content, difficulty = 'easy', onComplete, onQuestionsRead
   }, []);
 
   if (total === 0) {
+    // 题目为 0 时直接完成（得 0 分），避免 Learn 页 canFinish 永久 false 卡死
     return (
       <Card className="border-primary/20">
         <CardContent className="p-6 text-center text-muted-foreground">
-          没有可测验的内容
+          <p className="mb-3">没有可测验的内容，跳过测验</p>
+          <Button size="sm" onClick={() => onComplete(0, 0)}>
+            跳过测验，继续
+          </Button>
         </CardContent>
       </Card>
     );

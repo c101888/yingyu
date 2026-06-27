@@ -63,6 +63,8 @@ export default function DailyRoute() {
   const activeRoute = routes.find((r) => r.id === activeRouteId) || routes[0];
 
   const [editMode, setEditMode] = useState(false);
+  // 每个节点的难度选择（按节点索引存储），默认 easy
+  const [nodeDifficulty, setNodeDifficulty] = useState<Record<number, 'easy' | 'medium' | 'hard'>>({});
   const [editingNodes, setEditingNodes] = useState<RouteNode[]>([]);
   const [saved, setSaved] = useState(false);
   // 路线元信息编辑
@@ -181,10 +183,10 @@ export default function DailyRoute() {
     }
   };
 
-  const startFromNode = (node: RouteNode) => {
+  const startFromNode = (node: RouteNode, difficulty: 'easy' | 'medium' | 'hard' = 'easy') => {
     if (!editMode) {
-      // 非编辑模式才跳转生成
-      navigate(`/scene-result?from=route&scene=${encodeURIComponent(node.nameZh)}`);
+      // 非编辑模式才跳转生成，带上难度参数
+      navigate(`/scene-result?from=route&scene=${encodeURIComponent(node.nameZh)}&difficulty=${difficulty}`);
     }
   };
 
@@ -354,15 +356,34 @@ export default function DailyRoute() {
                           <p className="mt-1 text-sm text-muted-foreground">{node.desc}</p>
                         )}
                       </div>
-                      <Button
-                        variant="soft"
-                        size="sm"
-                        className="shrink-0"
-                        onClick={() => startFromNode(node)}
-                      >
-                        学这个
-                        <ArrowRight className="h-4 w-4" />
-                      </Button>
+                      <div className="flex flex-col gap-2 shrink-0 sm:flex-row sm:items-center">
+                        {/* 难度选择：手机端紧凑三按钮，平板/桌面端带标签 */}
+                        <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/40 p-0.5">
+                          {(['easy', 'medium', 'hard'] as const).map((d) => (
+                            <button
+                              key={d}
+                              onClick={() => setNodeDifficulty((prev) => ({ ...prev, [i]: d }))}
+                              className={cn(
+                                'rounded-md px-2 py-1 text-xs font-semibold transition-colors',
+                                (nodeDifficulty[i] || 'easy') === d
+                                  ? 'bg-primary text-primary-foreground shadow-soft'
+                                  : 'text-muted-foreground hover:text-foreground',
+                              )}
+                            >
+                              {d === 'easy' ? '简单' : d === 'medium' ? '中等' : '复杂'}
+                            </button>
+                          ))}
+                        </div>
+                        <Button
+                          variant="soft"
+                          size="sm"
+                          className="shrink-0"
+                          onClick={() => startFromNode(node, nodeDifficulty[i] || 'easy')}
+                        >
+                          学这个
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>

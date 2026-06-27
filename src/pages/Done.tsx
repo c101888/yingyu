@@ -39,15 +39,19 @@ export default function Done() {
     if (!session.learnedDone || !session.practiceDone) return;
     // 已领过则不再发放
     if (hasAwarded(session.id)) return;
-    const stars = award({
+    // award 现为 async（同步后端），用立即调用 + 状态更新
+    let cancelled = false;
+    award({
       userId: currentUser.id,
       sessionId: session.id,
       sceneNameZh: session.content.sceneNameZh,
       difficulty: session.difficulty || 'easy',
+    }).then((stars) => {
+      if (!cancelled && stars > 0) {
+        setEarnedStars(stars);
+      }
     });
-    if (stars > 0) {
-      setEarnedStars(stars);
-    }
+    return () => { cancelled = true; };
   }, [session, currentUser, award, hasAwarded]);
 
   // 当前用户的总星数和等级（用于显示升级提示）
@@ -269,6 +273,10 @@ export default function Done() {
           <Button size="lg" onClick={handlePracticeAgain} className="w-full sm:w-auto sm:min-w-[180px]">
             <RotateCcw className="h-4 w-4" />
             再练一次
+          </Button>
+          <Button variant="soft" size="lg" onClick={() => navigate('/')} className="w-full sm:w-auto sm:min-w-[180px]">
+            <Sparkles className="h-4 w-4" />
+            换个场景学
           </Button>
         </div>
       </div>
