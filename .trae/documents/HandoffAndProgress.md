@@ -207,6 +207,32 @@ b5a7c77 add LLM proxy route and admin-ui sub-path support
 
 **当前处理方式**：暂不修改，待商业化前必须接入服务端语音识别 API。
 
+### 🕒 初赛期间临时隐藏跟读功能（2026-06-27）
+
+**决策**：TRAE AI 创造力大赛初赛期间（截至 2026-07-15），临时隐藏跟读评分功能（`RepeatButton`），改为"听示范+播放完自动标记已读"模式。
+
+**原因**：Web Speech API 在国内浏览器、iOS Safari、微信内置浏览器兼容性差，评审使用不同设备时跟读失败会卡住学习闭环。为保证评审体验流畅，临时降级为"听示范跟读"模式。
+
+**改造内容**（commit 待提交）：
+- `src/components/SpeakButton.tsx`：新增 `onSpoken` 回调，在朗读结束（onend/onerror）或不支持 TTS 时触发
+- `src/pages/Learn.tsx`：移除词汇/句子的 `RepeatButton`，改为 `SpeakButton` 播放完自动 `markReadWord`/`markReadSentence`
+- `src/pages/Practice.tsx`：移除孩子台词的 `RepeatButton`，改为 `SpeakButton` 播放完自动 `setChildSpoken(true)`
+- `src/pages/Upgrade.tsx` / `src/lib/tiers.ts`：权益描述"语音识别评分"改为"听示范跟读"
+- `src/components/RepeatButton.tsx` / `src/lib/speechRecognition.ts`：**保留不动**，未删除
+
+**⚠️ 必须恢复**：跟读功能是产品核心卖点之一，初赛结束后必须恢复。恢复方式：
+```powershell
+# 恢复跟读功能（初赛结束后执行）
+git checkout 03c2e30 -- src/components/RepeatButton.tsx src/lib/speechRecognition.ts
+# 然后手动还原 Learn.tsx / Practice.tsx 中的 RepeatButton 引用
+# 参考 03c2e30 版本的 Learn.tsx:103-112, 142-151 和 Practice.tsx:233-246
+```
+
+**未删除的文件**（保留以便恢复）：
+- `src/components/RepeatButton.tsx`
+- `src/lib/speechRecognition.ts`
+- `src/lib/voice.ts`（TTS，仍在使用）
+
 ## 10. 本地启动命令
 
 ```powershell

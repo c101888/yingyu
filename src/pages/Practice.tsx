@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Volume2,
-  Mic,
   ArrowRight,
   PartyPopper,
   RotateCcw,
@@ -17,7 +16,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SpeakButton } from '@/components/SpeakButton';
-import { RepeatButton } from '@/components/RepeatButton';
 import { useSessionStore } from '@/store/useSessionStore';
 import { speak, stopSpeaking } from '@/lib/voice';
 import { cn } from '@/lib/utils';
@@ -231,15 +229,17 @@ export default function Practice() {
                   <p className="text-right font-display text-base sm:text-lg font-bold text-foreground">{current.child}</p>
                   <p className="text-right text-sm text-muted-foreground">{current.childZh}</p>
                   <div className="mt-2 flex justify-end gap-1.5">
-                    <SpeakButton text={current.child} variant="soft" size="sm" label="听示范" className="h-8" />
-                    <RepeatButton
+                    <SpeakButton
                       text={current.child}
+                      variant={childSpoken ? 'ghost' : 'soft'}
                       size="sm"
-                      variant={childSpoken ? 'ghost' : 'default'}
+                      label={childSpoken ? '再听' : '听示范'}
                       className="h-8"
-                      onScored={() => {
-                        setChildSpoken(true);
-                        setSpokenCount((c) => c + 1);
+                      onSpoken={() => {
+                        if (!childSpoken) {
+                          setChildSpoken(true);
+                          setSpokenCount((c) => c + 1);
+                        }
                       }}
                     />
                   </div>

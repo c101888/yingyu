@@ -287,7 +287,7 @@ export default function Upgrade() {
                     { label: '积分兑换奖励', free: '—', plus: '—', pro: '✓' },
                     { label: '场景缓存复用', free: '—', plus: '✓', pro: '✓' },
                     { label: '完整学习闭环', free: '✓', plus: '✓', pro: '✓' },
-                    { label: '语音识别评分', free: '✓', plus: '✓', pro: '✓' },
+                    { label: '听示范跟读', free: '✓', plus: '✓', pro: '✓' },
                   ].map((row) => (
                     <tr key={row.label} className="border-b last:border-0">
                       <td className="py-2.5 font-medium">{row.label}</td>

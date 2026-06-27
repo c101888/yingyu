@@ -10,7 +10,6 @@ import { PageShell } from '@/components/PageShell';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SpeakButton } from '@/components/SpeakButton';
-import { RepeatButton } from '@/components/RepeatButton';
 import { Quiz } from '@/components/Quiz';
 import { useSessionStore } from '@/store/useSessionStore';
 import { cn } from '@/lib/utils';
@@ -103,17 +102,11 @@ export default function Learn() {
                   <div className="flex flex-col gap-1.5">
                     <SpeakButton
                       text={v.word}
-                      variant="soft"
+                      variant={done ? 'ghost' : 'soft'}
                       size="sm"
-                      label="听"
+                      label={done ? '再听' : '听'}
                       className="h-10 px-3"
-                    />
-                    <RepeatButton
-                      text={v.word}
-                      size="sm"
-                      variant={done ? 'ghost' : 'outline'}
-                      className="h-10 px-3"
-                      onScored={() => markReadWord(v.word)}
+                      onSpoken={() => markReadWord(v.word)}
                     />
                   </div>
                 </div>
@@ -146,15 +139,14 @@ export default function Learn() {
                     <p className="text-sm text-muted-foreground">{s.zh}</p>
                   </div>
                   <div className="flex gap-1.5">
-                    <SpeakButton text={s.en} variant="soft" size="icon" className="h-10 w-10" />
-                    <SpeakButton text={s.en} rate={0.5} variant="ghost" size="sm" label="慢速" className="h-10 px-2 text-xs" />
-                    <RepeatButton
+                    <SpeakButton
                       text={s.en}
+                      variant={done ? 'ghost' : 'soft'}
                       size="icon"
-                      variant={done ? 'ghost' : 'outline'}
                       className="h-10 w-10"
-                      onScored={() => markReadSentence(i)}
+                      onSpoken={() => markReadSentence(i)}
                     />
+                    <SpeakButton text={s.en} rate={0.5} variant="ghost" size="sm" label="慢速" className="h-10 px-2 text-xs" />
                   </div>
                 </div>
               );

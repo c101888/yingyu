@@ -12,6 +12,8 @@ interface SpeakButtonProps {
   className?: string;
   rate?: number;
   onSpeak?: () => void;
+  // 朗读正常结束回调（用于"听示范后自动标记已读"等场景）
+  onSpoken?: () => void;
 }
 
 // 可复用的"听一听"按钮：点击朗读英文，朗读中显示状态，失败不阻断
@@ -23,19 +25,31 @@ export function SpeakButton({
   className,
   rate,
   onSpeak,
+  onSpoken,
 }: SpeakButtonProps) {
   const [speaking, setSpeaking] = useState(false);
 
   const handleSpeak = useCallback(() => {
-    if (!speechSupported()) return;
+    if (!speechSupported()) {
+      // 浏览器不支持 TTS 时也触发 onSpoken，避免用户被卡住无法标记已读
+      onSpoken?.();
+      return;
+    }
     onSpeak?.();
     speak(text, {
       rate,
       onstart: () => setSpeaking(true),
-      onend: () => setSpeaking(false),
-      onerror: () => setSpeaking(false),
+      onend: () => {
+        setSpeaking(false);
+        onSpoken?.();
+      },
+      onerror: () => {
+        setSpeaking(false);
+        // 出错时也触发 onSpoken，避免朗读失败导致用户无法继续
+        onSpoken?.();
+      },
     });
-  }, [text, rate, onSpeak]);
+  }, [text, rate, onSpeak, onSpoken]);
 
   return (
     <Button
