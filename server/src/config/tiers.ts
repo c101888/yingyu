@@ -49,7 +49,7 @@ export const TIER_CONFIGS: Record<Tier, TierConfig> = {
       '每日路线 2 条预置（上学日 + 周末）',
       '完整学习闭环（学习 + 测验 + 演练）',
       '积分与等级系统',
-      '语音识别跟读评分',
+      '听示范跟读',
     ],
   },
   plus: {

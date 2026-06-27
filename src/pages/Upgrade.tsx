@@ -51,7 +51,13 @@ export default function Upgrade() {
       setSuccess(`恭喜！已升级为 ${TIER_CONFIGS[targetTier].nameZh}，有效期 365 天`);
     } catch (err) {
       if (isAuthError(err)) return; // 登录已过期，静默处理
-      setError(err instanceof Error ? err.message : '升级失败');
+      // 权限不足（普通用户不能自助升级，需管理员后台操作或接入支付后才能自助升级）
+      const msg = err instanceof Error ? err.message : '升级失败';
+      if (msg.includes('管理员权限')) {
+        setError('当前为测试版本，升级功能需管理员后台操作。正式上线后将接入支付自助升级。');
+      } else {
+        setError(msg);
+      }
     } finally {
       setUpgrading(null);
     }
